@@ -27,7 +27,7 @@ async function functionality() {
       let filesCount = data.length
       for (var i = 0; i < data.length; i++) {
         const remoteFilename = remotePath + data[i].name
-        const localFilename = __dirname + "/" + data[i].name
+        const localFilename = __dirname + "/data/" + data[i].name
         sftp
           .get(remoteFilename, localFilename)
           .then(stream => {
