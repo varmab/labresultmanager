@@ -4,13 +4,19 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build":"tsc",
-    "start" : "ts-node src/index.ts"
+    "build": "tsc",
+    "start": "ts-node src/index.ts"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
     "typescript": "^3.6.4"
+  },
+  "dependencies": {
+    "hl7": "^1.1.1",
+    "hl7js": "0.0.6",
+    "node-cron": "^2.0.3",
+    "ssh2-sftp-client": "^4.2.1"
   }
 }
