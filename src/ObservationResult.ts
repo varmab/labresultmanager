@@ -4,12 +4,12 @@ class xrxQuestResultObservationResult {
   RequestItemId: string = ""
   ResultItemId: string = ""
   LabResultValueType: string = ""
-  LabResultAnalyteNumber
+  LabResultAnalyteNumber: any
   LabResultAnalyteName: string = ""
   LabResultValue: string = ""
   LabResultSummary: string = ""
-  LabResultMeasureUnits
-  LabResultNormalRange
+  LabResultMeasureUnits: any
+  LabResultNormalRange: any
   LabResultNormalcyStatus: string = ""
   LabResultStatus: string = ""
   LabResultDateTime: string = ""
@@ -30,7 +30,7 @@ class xrxQuestResultObservationResult {
   LabResultPerformerSuffix: string = ""
   LabResultPerformerPrefix: string = ""
   ValueSetId: string = ""
-  ResultRecNo
+  ResultRecNo: any
 
   constructor(rawData: any) {
     this.rawData = rawData

@@ -1,28 +1,28 @@
 class xrxQuestResultTransaction {
   rawMessage: any
   TransactionId: string = ""
-  VendorAccessionNo: number = null
+  VendorAccessionNo: number | undefined
   MessageControlId: string = ""
   RetrievedDateTime: string = ""
   LabResultSendDateTime: string = ""
   VendorProviderId: string = ""
   VendorLabResultCode: string = ""
-  VendorOrderReferenceNo: number = null
+  VendorOrderReferenceNo: number | undefined
   RawData: string = ""
   PatId: string = ""
   DctId: string = ""
   VendorOnFilePatLastName: string = ""
   VendorOnFilePatFirstName: string = ""
   VendorOnFilePatDOB: string = ""
-  VendorOnFilePatSex
-  VendorOnFilePatSSN
+  VendorOnFilePatSex: any
+  VendorOnFilePatSSN: any
   VendorOnFileDctLastName: string = ""
   VendorOnFileDctFirstName: string = ""
   VendorOnFileDctLicenseNo: string = ""
   OrderStatus: string = ""
-  NotesComments
-  PrintableReport
-  ReviewedDateTime
+  NotesComments: any
+  PrintableReport: any
+  ReviewedDateTime: any
   OrderTransactionId: string = ""
   VendorOnFilePatMiddleName: string = ""
   VendorOnFilePatSuffix: string = ""
@@ -30,8 +30,8 @@ class xrxQuestResultTransaction {
   VendorOnFilePatRace: string = ""
   VendorOnFilePatRaceAlt: string = ""
   VendorPatIdNamespace: string = ""
-  VendorPatIdTypeCode
-  IsCcdaSent
+  VendorPatIdTypeCode: any
+  IsCcdaSent: any
 
   constructor(rawMessage: any) {
     this.rawMessage = rawMessage
