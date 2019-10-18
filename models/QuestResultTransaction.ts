@@ -1,5 +1,5 @@
-class xrxQuestResultTransaction {
-  rawMessage: any
+class QuestResultTransaction {
+  rawMessage: any=""
   TransactionId: string = ""
   VendorAccessionNo: number | undefined
   MessageControlId: string = ""
@@ -14,15 +14,15 @@ class xrxQuestResultTransaction {
   VendorOnFilePatLastName: string = ""
   VendorOnFilePatFirstName: string = ""
   VendorOnFilePatDOB: string = ""
-  VendorOnFilePatSex: any
-  VendorOnFilePatSSN: any
+  VendorOnFilePatSex: any="";
+  VendorOnFilePatSSN: any="";
   VendorOnFileDctLastName: string = ""
   VendorOnFileDctFirstName: string = ""
   VendorOnFileDctLicenseNo: string = ""
   OrderStatus: string = ""
-  NotesComments: any
-  PrintableReport: any
-  ReviewedDateTime: any
+  NotesComments: any="";
+  PrintableReport: any="";
+  ReviewedDateTime: any="";
   OrderTransactionId: string = ""
   VendorOnFilePatMiddleName: string = ""
   VendorOnFilePatSuffix: string = ""
@@ -30,8 +30,8 @@ class xrxQuestResultTransaction {
   VendorOnFilePatRace: string = ""
   VendorOnFilePatRaceAlt: string = ""
   VendorPatIdNamespace: string = ""
-  VendorPatIdTypeCode: any
-  IsCcdaSent: any
+  VendorPatIdTypeCode: any="";
+  IsCcdaSent: any="";
 
   constructor(rawMessage: any) {
     this.rawMessage = rawMessage
