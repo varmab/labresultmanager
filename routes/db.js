@@ -1,0 +1,1 @@
+exports.dbQueries = data => {}
