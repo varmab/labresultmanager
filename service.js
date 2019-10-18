@@ -1,15 +1,15 @@
 const cron = require("node-cron")
-let logger = require('./routes/logger')
-let sftp = require('./routes/sftp')
+let logger = require("./routes/logger")
+let sftp = require("./routes/sftp")
 
-global.__basedir = __dirname;
+global.__basedir = __dirname
 
 class LabResultManager {
-  static run(){
-      //Download Files
-      sftp.downloadHl7Files();
-      //Parse Files
-          //Save to database
+  static run() {
+    //Download Files
+    sftp.downloadHl7Files()
+    //Parse Files
+    //Save to database
   }
 }
 

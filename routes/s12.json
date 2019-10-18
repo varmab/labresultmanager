@@ -1,0 +1,114 @@
+{
+  "format": "hl7-2.4",
+  "adapter": "default",
+  "mapping": {
+    "msh": {
+      "values": [
+        {
+          "field": "msh.message_control_id",
+          "component": [8, 1]
+        },
+        {
+          "field": "msh.lab_result_send_datetime",
+          "component": [5, 1]
+        }
+      ]
+    },
+    "pid": {
+      "values": [
+        {
+          "field": "pid.patid",
+          "component": [2, 1]
+        },
+        {
+          "field": "pid.vendor_order_referenceno",
+          "component": [4, 1]
+        },
+        {
+          "field": "pid.vendor_onfile_pat_lastname",
+          "component": [5, 1]
+        },
+        {
+          "field": "pid.vendor_onfile_pat_firstname",
+          "component": [5, 2]
+        },
+        {
+          "field": "pid.vendor_onfile_pat_dob",
+          "component": [7, 1]
+        },
+        {
+          "field": "pid.vendor_onfile_pat_sex",
+          "component": [8, 1]
+        },
+        {
+          "field": "pid.vendor_onfile_pat_ssn",
+          "component": [19, 1]
+        }
+      ]
+    },
+    "orc": {
+      "values": [
+        {
+          "field": "orc.transaction_id",
+          "component": [2, 1]
+        },
+        {
+          "field": "orc.vendor_accession_no",
+          "component": [3, 1]
+        },
+        {
+          "field": "orc.order_status",
+          "component": [5, 1]
+        }
+      ]
+    },
+    "nte": {
+      "values": [
+        {
+          "field": "nte.notes_comments",
+          "component": [3, 1]
+        }
+      ]
+    },
+    "obx": {
+      "values": [
+        {
+          "field": "obx.labresult_valuetype",
+          "component": [2, 1]
+        },
+        {
+          "field": "obx.labresult_analyte_number",
+          "component": [3, 1]
+        },
+        {
+          "field": "obx.labresult_analyte_name",
+          "component": [3, 2]
+        },
+        {
+          "field": "obx.labresult_measure_units",
+          "component": [6, 2]
+        },
+        {
+          "field": "obx.labresult_normal_range",
+          "component": [7, 1]
+        },
+        {
+          "field": "obx.labresult_normalcy_status",
+          "component": [8, 1]
+        },
+        {
+          "field": "obx.labresult_status",
+          "component": [11, 1]
+        },
+        {
+          "field": "obx.labresult_datetime",
+          "component": [14, 1]
+        },
+        {
+          "field": "obx.labresult_fillerId",
+          "component": [15, 1]
+        }
+      ]
+    }
+  }
+}
