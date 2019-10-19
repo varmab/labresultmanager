@@ -64,30 +64,69 @@ exports.dbQueries = obj => {
             ")"
         )
         .then(recordSet => {
-          console.log("recordSet", recordSet)
-          dbConn.close()
+          console.log("Transaction recordSet", recordSet)
+          connection.close()
+          // xrxQuestResultObservationResult fields
+          obx.forEach(result => {
+            const {
+              labresult_valuetype,
+              labresult_analyte_number,
+              labresult_analyte_name,
+              labresult_measure_units,
+              labresult_normal_range,
+              labresult_normalcy_status,
+              labresult_status,
+              labresult_datetime,
+              labresult_fillerId
+            } = result
+
+            connection
+              .connect()
+              .then(() => {
+                console.log("connection establisheddd")
+                var request = new sql.Request(connection)
+                request
+                  .query(
+                    "insert into xrxQuestResultObservationResult  (LabResultValueType  LabResultAnalyteNumber, LabResultAnalyteName, LabResultMeasureUnits, LabResultNormalRange, LabResultNormalcyStatus, LabResultStatus, LabResultDateTime, LabResultFillerId) Values(" +
+                      labresult_valuetype +
+                      "," +
+                      labresult_analyte_number +
+                      "," +
+                      labresult_analyte_name +
+                      "," +
+                      labresult_measure_units +
+                      "," +
+                      labresult_normal_range +
+                      "," +
+                      labresult_normalcy_status +
+                      "," +
+                      labresult_status +
+                      "," +
+                      labresult_datetime +
+                      "," +
+                      labresult_fillerId +
+                      ")"
+                  )
+                  .then(recordSet => {
+                    console.log("Observation recordSet", recordSet)
+                    connection.close()
+                  })
+                  .catch(err => {
+                    console.log(err)
+                    connection.close()
+                  })
+              })
+              .catch(err => {
+                console.log(err)
+              })
+          })
         })
         .catch(err => {
           console.log(err)
-          dbConn.close()
+          connection.close()
         })
     })
     .catch(err => {
       console.log(err)
     })
-
-  // xrxQuestResultObservationResult fields
-  obx.forEach(result => {
-    const {
-      labresult_valuetype,
-      labresult_analyte_number,
-      labresult_analyte_name,
-      labresult_measure_units,
-      labresult_normal_range,
-      labresult_normalcy_status,
-      labresult_status,
-      labresult_datetime,
-      labresult_fillerId
-    } = result
-  })
 }
