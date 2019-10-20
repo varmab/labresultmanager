@@ -1,10 +1,10 @@
 const winston = require('winston');
 
 logger = winston.createLogger({
-  level: 'info',
+  level: 'verbose',
   format: winston.format.json(),
-  defaultMeta: { service: 'labresultmananger-service' },
   transports: [
+    new winston.transports.Console(),
     new winston.transports.File({ filename: 'error.log', level: 'error' }),
     new winston.transports.File({ filename: 'combined.log' })
   ]

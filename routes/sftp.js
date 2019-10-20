@@ -5,8 +5,9 @@ let hl7 = require("./hl7")
 require("dotenv").config()
 
 exports.downloadHl7Files = () => {
-  console.log("connecting to sftp")
-  sftp
+  return new Promise((resolve,reject)=>{
+    logger.log({ level:"info",message:"connecting to sftp"})
+    sftp
     .connect({
       host: process.env.AEGIS_HOST,
       port: process.env.AEGIS_PORT,
@@ -14,43 +15,40 @@ exports.downloadHl7Files = () => {
       password: process.env.AEGIS_PASSWORD
     })
     .then(() => {
-      console.log("connection established")
+      logger.log({ level:"info",message:"connection established"})
       return sftp.list(process.env.AEGIS_REMOTE_PATH)
     })
-    // .then(files => {
-    //   var downloads = []
-    //   files.forEach(file => {
-    //     const remoteFilename = process.env.AEGIS_REMOTE_PATH + file.name
-    //     const localFilename = __basedir + "/files/" + file.name
-    //     downloads.push(sftp.get(remoteFilename, localFilename))
-    //   })
+    .then(files => {
+      var downloads = []
+      var localFiles=[]
+      files.forEach(file => {
+        const remoteFilename = process.env.AEGIS_REMOTE_PATH + file.name
+        const localFilename = __basedir + "/files/" + file.name
+        localFiles.push(localFilename);
+        downloads.push(sftp.get(remoteFilename, localFilename))
+      })
 
-    //   Promise.all(downloads)
-    //     .then(() => {
-    //       console.log("files downloaded")
-    //       logger.log({
-    //         level: "info",
-    //         message: "downloads complete"
-    //       })
-    //       sftp.end()
-    //     })
-    //     .then(() => {
-    //       hl7.parseHl7Files()
-    //     })
-    //     .catch(() => {
-    //       logger.log({
-    //         level: "error",
-    //         message: "Error downloading files"
-    //       })
-    //       sftp.end()
-    //     })
-    // })
-    .then(() => {
-      hl7.parseHl7Files()
+      Promise.all(downloads)
+        .then(() => {
+          sftp.end();
+          logger.log({ level:"info",message:"completed downloading files"})
+          resolve(localFiles)
+        })
+        .catch((err) => {
+          sftp.end()
+          
+          let errorMessage="Failed to finish downloading:" +  JSON.stringify(err);
+          logger.log({ level:"error",message:errorMessage})
+          
+          let error=new Error(errorMessage)
+          reject(error)
+        })
     })
     .catch(err => {
-      throw new Error(
-        "Unable to download files from AGEIS: " + JSON.stringify(err)
-      )
+      let errorMessage="Failed to download files:" +  JSON.stringify(err);
+      logger.log({ level:"error",message:errorMessage})
+      let error=new Error(errorMessage)
+      reject(error)
     })
+  })
 }

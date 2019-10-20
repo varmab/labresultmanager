@@ -1,1 +1,46 @@
 {"level":"info","message":"downloads complete","service":"labresultmananger-service"}
+{"level":"info","messgae":"connecting to sftp","service":"labresultmananger-service"}
+{"level":"info","messgae":"connection established","service":"labresultmananger-service"}
+{"level":"info","messgae":"connecting to sftp","service":"labresultmananger-service"}
+{"level":"info","messgae":"connection established","service":"labresultmananger-service"}
+{"level":"info","messgae":"connecting to sftp","service":"labresultmananger-service"}
+{"level":"info","messgae":"connection established","service":"labresultmananger-service"}
+{"level":"info","messgae":"connecting to sftp","service":"labresultmananger-service"}
+{"level":"info","messgae":"connection established","service":"labresultmananger-service"}
+{"level":"info","messgae":"completed downloading files","service":"labresultmananger-service"}
+{"level":"info","message":"connecting to sftp","service":"labresultmananger-service"}
+{"level":"info","message":"connection established","service":"labresultmananger-service"}
+{"level":"info","message":"completed downloading files","service":"labresultmananger-service"}
+{"level":"info","message":"connecting to sftp"}
+{"level":"info","message":"connection established"}
+{"level":"info","message":"completed downloading files"}
+{"level":"info","message":"connecting to sftp"}
+{"level":"info","message":"connection established"}
+{"level":"info","message":"connecting to sftp"}
+{"level":"error","message":"Failed to download files:{}"}
+{"level":"info","message":"connecting to sftp"}
+{"level":"error","message":"Failed to download files:{}"}
+{"level":"info","message":"connecting to sftp"}
+{"level":"info","message":"connection established"}
+{"level":"info","message":"completed downloading files"}
+{"level":"info","message":"connecting to sftp"}
+{"level":"info","message":"connection established"}
+{"level":"info","message":"completed downloading files"}
+{"level":"info","message":"connecting to sftp"}
+{"level":"info","message":"connection established"}
+{"level":"info","message":"completed downloading files"}
+{"level":"info","message":"connecting to sftp"}
+{"level":"info","message":"connection established"}
+{"level":"info","message":"completed downloading files"}
+{"level":"info","message":"connecting to sftp"}
+{"level":"info","message":"connection established"}
+{"level":"info","message":"completed downloading files"}
+{"level":"info","message":"connecting to sftp"}
+{"level":"info","message":"connection established"}
+{"level":"info","message":"completed downloading files"}
+{"level":"info","message":"connecting to sftp"}
+{"level":"info","message":"connection established"}
+{"level":"info","message":"completed downloading files"}
+{"level":"info","message":"connecting to sftp"}
+{"level":"info","message":"connection established"}
+{"level":"info","message":"completed downloading files"}
