@@ -1,5 +1,4 @@
 var sql = require("mssql")
-let PromisePool = require("es6-promise-pool")
 var moment = require('moment-timezone');
 
 require("dotenv").config()
