@@ -17,36 +17,32 @@ exports.downloadHl7Files = () => {
       console.log("connection established")
       return sftp.list(process.env.AEGIS_REMOTE_PATH)
     })
-    // .then(files => {
-    //   var downloads = []
-    //   files.forEach(file => {
-    //     const remoteFilename = process.env.AEGIS_REMOTE_PATH + file.name
-    //     const localFilename = __basedir + "/files/" + file.name
-    //     downloads.push(sftp.get(remoteFilename, localFilename))
-    //   })
+    .then(files => {
+      var downloads = []
+      files.forEach(file => {
+        const remoteFilename = process.env.AEGIS_REMOTE_PATH + file.name
+        const localFilename = __basedir + "/files/" + file.name
+        downloads.push(sftp.get(remoteFilename, localFilename))
+      })
 
-    //   Promise.all(downloads)
-    //     .then(() => {
-    //       console.log("files downloaded")
-    //       logger.log({
-    //         level: "info",
-    //         message: "downloads complete"
-    //       })
-    //       sftp.end()
-    //     })
-    //     .then(() => {
-    //       hl7.parseHl7Files()
-    //     })
-    //     .catch(() => {
-    //       logger.log({
-    //         level: "error",
-    //         message: "Error downloading files"
-    //       })
-    //       sftp.end()
-    //     })
-    // })
-    .then(() => {
-      hl7.parseHl7Files()
+      Promise.all(downloads)
+        .then(() => {
+          logger.log({
+            level: "info",
+            message: "downloads completed"
+          })
+          sftp.end()
+        })
+        .then(() => {
+          hl7.parseHl7Files()
+        })
+        .catch(() => {
+          logger.log({
+            level: "error",
+            message: "Error downloading files"
+          })
+          sftp.end()
+        })
     })
     .catch(err => {
       throw new Error(
