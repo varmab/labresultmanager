@@ -10,9 +10,13 @@ exports.parseHl7File = (file) => {
       if (err) reject(err);
       reader.read(buffer.toString(), function (err, hl7Data) {
         if (err) {
-          reject(err);
+          let errorMessage = "Failed while reading hl7 file" + JSON.stringify(err);
+          logger.log({ level:"error",message:errorMessage})
+          let error=new Error(errorMessage)
+          reject(error);
         } else {
           var hl7Message=parser.decode(hl7Data.segments[0].rawData, s12Mapping);
+          logger.log({ level:"info",message:"Fetched parsed values of HL7 file"})
           resolve(hl7Message)
         }
       })

@@ -16,7 +16,6 @@
   "dependencies": {
     "@rimiti/hl7-object-parser": "^2.9.0",
     "dotenv": "^8.2.0",
-    "es6-promise-pool": "^2.5.0",
     "hl7": "^1.1.1",
     "hl7js": "0.0.6",
     "moment-timezone": "^0.5.27",

@@ -1,6 +1,5 @@
 let Client = require("ssh2-sftp-client")
 let sftp = new Client()
-let hl7 = require("./hl7")
 
 require("dotenv").config()
 
@@ -15,7 +14,7 @@ exports.downloadHl7Files = () => {
       password: process.env.AEGIS_PASSWORD
     })
     .then(() => {
-      logger.log({ level:"info",message:"connection established"})
+      logger.log({ level:"info",message:"sftp connection established"})
       return sftp.list(process.env.AEGIS_REMOTE_PATH)
     })
     .then(files => {
@@ -36,10 +35,8 @@ exports.downloadHl7Files = () => {
         })
         .catch((err) => {
           sftp.end()
-          
           let errorMessage="Failed to finish downloading:" +  JSON.stringify(err);
           logger.log({ level:"error",message:errorMessage})
-          
           let error=new Error(errorMessage)
           reject(error)
         })

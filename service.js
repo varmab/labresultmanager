@@ -16,11 +16,9 @@ class LabResultManager {
              hl7.parseHl7File(file)
             .then((hl7Obj)=>{
                return db.saveToDB(hl7Obj);
-            });
+            })
         });
-      }, Promise.resolve());
-
-      console.log('Completed')
+      }, Promise.resolve())
     })
   }
 }
@@ -32,7 +30,3 @@ LabResultManager.run()
 // })
 
 // task.start()
-
-
-
-

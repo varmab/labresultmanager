@@ -15,8 +15,6 @@ const config = {
 
 var conn=`Server=${config.server},1433;Database=${config.options.database};User Id=${config.user};Password=${config.password};Encrypt=true`
 
-console.log("db config", config)
-
 const formatDate=(date)=>{
   const d = new Date(parseInt(date));
   const modi =  d.toISOString();
@@ -50,7 +48,7 @@ const createQuestResultTransaction =  (hl7Obj) => {
 
   lab_result_send_datetime=lab_result_send_datetime?formatDate(lab_result_send_datetime):null;
   vendor_onfile_pat_dob=vendor_onfile_pat_dob?formatDate(vendor_onfile_pat_dob):null;
-
+  logger.log({ level:"info",message:"Making database calls"})
   return new Promise(async (resolve, reject) => {
     try {
       var recNo=generateUUID();
@@ -66,12 +64,15 @@ const createQuestResultTransaction =  (hl7Obj) => {
              '${vendor_onfile_pat_dob}', 
               '${vendor_onfile_pat_sex}', 
               '${vendor_onfile_pat_ssn}')`;
-      console.log(qry);
+      // console.log(qry);
       let result = await sql.query(qry)
-      console.log('result', result)
+      logger.log({ level:"info",message:"Created transaction"})
       resolve(recNo, true)
     } catch (err) {
-      reject('Error: ' + err, false)
+      let errorMessage = "Failed creating transaction" + JSON.stringify(err);
+      logger.log({ level:"error",message:errorMessage})
+      let error=new Error(errorMessage)
+      reject(error, false)
     } 
   })
 }
@@ -102,13 +103,14 @@ const createQuestResultObservationResults = (hl7Result,hl7ResultIndex,transction
               '${labresult_status}', 
               '${labresult_datetime}', 
               '${labresult_fillerId}')`;
-        console.log(qry);
         let result = await sql.query(qry);
-
-        console.log('result', result)
+        logger.log({ level:"info",message:"Created result"})
         resolve(null, true)
       } catch (err) {
-        reject('Error: ' + err, false)
+        let errorMessage = "Failed creating result" + JSON.stringify(err);
+        logger.log({ level:"error",message:errorMessage})
+        let error=new Error(errorMessage)
+        reject(error, false)
       }
     })
 }
@@ -122,11 +124,10 @@ exports.saveToDB= (hl7Obj)=>{
       let { obx } = hl7Obj;
       obx.reduce((accumulatedPromise,nextResult,nextResultIndex)=>{
           return createQuestResultObservationResults(nextResult,nextResultIndex,transactionId);
-      },Promise.resolve());
-      //await sql.close();
+      },Promise.resolve())
+      .then(()=> console.log('savetodb then'))
     })
     .catch(async (err)=>{
-      //await sql.close();
       console.log('failed ' + JSON.stringify(err))
     })
   })
