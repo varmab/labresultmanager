@@ -27,7 +27,7 @@ exports.parseHl7Files = () => {
 }
 
 function mapValues(rawMessage) {
-  const obj = parser.decode(rawMessage, s12Mapping)
-  // Passing mapped values to queries
-  queries.dbQueries(obj)
+  const hl7Obj = parser.decode(rawMessage, s12Mapping)
+  // Passing mapped values to savetoDB function for saving them on database
+  queries.savetoDB(hl7Obj)
 }
