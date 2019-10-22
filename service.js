@@ -10,15 +10,15 @@ class LabResultManager {
   static run() {
     //Download Files to local folder
     sftp.downloadHl7Files()
-    .then((files)=>{
-      files.reduce((previousPromise, file) => {
-        return previousPromise.then(() => {
-             hl7.parseHl7File(file)
-            .then((hl7Obj)=>{
-               return db.saveToDB(hl7Obj);
-            })
-        });
-      }, Promise.resolve())
+    .then((localFiles)=>{
+      localFiles.map((file)=>{
+        hl7.parseHl7File(file)
+        .then((hl7Obj)=>{
+          db.saveToDB(hl7Obj).then(()=>{
+            logger.log({level:"info", message:"COMPLETED"})
+          })
+        })
+      })
     })
   }
 }

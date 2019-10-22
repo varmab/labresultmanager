@@ -31,9 +31,8 @@ var generateUUID = () => {
   return uuid;
 };
 
-const createQuestResultTransaction =  (hl7Obj) => {
+const createTransaction = async(hl7Obj) =>{
   let { orc, msh, pid, obx } = hl7Obj
-
   let { transaction_id, vendor_accession_no } = orc
   let { message_control_id, lab_result_send_datetime } = msh
   let {
@@ -44,42 +43,71 @@ const createQuestResultTransaction =  (hl7Obj) => {
     vendor_onfile_pat_dob,
     vendor_onfile_pat_sex,
     vendor_onfile_pat_ssn
-  } = pid;
+  } = pid
 
-  lab_result_send_datetime=lab_result_send_datetime?formatDate(lab_result_send_datetime):null;
-  vendor_onfile_pat_dob=vendor_onfile_pat_dob?formatDate(vendor_onfile_pat_dob):null;
-  logger.log({ level:"info",message:"Making database calls"})
-  return new Promise(async (resolve, reject) => {
-    try {
-      var recNo=generateUUID();
-      let qry=`insert into dbo.xrxQuestResultTransaction (TransactionId, VendorAccessionNo, MessageControlId, LabResultSendDateTime, VendorOrderReferenceNo, PatId, VendorOnFilePatLastName, VendorOnFilePatFirstName, VendorOnFilePatDOB, VendorOnFilePatSex, VendorOnFilePatSSN) 
-      Values('${recNo}', 
-              '${vendor_accession_no}', 
-              '${message_control_id}', 
-              '${lab_result_send_datetime}', 
-              '${vendor_order_referenceno}', 
-              '${patid}', 
-              '${vendor_onfile_pat_lastname}', 
-              '${vendor_onfile_pat_firstname}', 
-             '${vendor_onfile_pat_dob}', 
-              '${vendor_onfile_pat_sex}', 
-              '${vendor_onfile_pat_ssn}')`;
-      // console.log(qry);
-      let result = await sql.query(qry)
-      logger.log({ level:"info",message:"Created transaction"})
-      resolve(recNo, true)
-    } catch (err) {
-      let errorMessage = "Failed creating transaction" + JSON.stringify(err);
-      logger.log({ level:"error",message:errorMessage})
-      let error=new Error(errorMessage)
-      reject(error, false)
-    } 
+  lab_result_send_datetime = lab_result_send_datetime
+    ? formatDate(lab_result_send_datetime)
+    : null
+  vendor_onfile_pat_dob = vendor_onfile_pat_dob
+    ? formatDate(vendor_onfile_pat_dob)
+    : null
+    return new Promise(async (resolve, reject) => {
+      try {
+        var recNo = await generateUUID()
+        logger.log({ level: "info", message: "genereated recoNo", recNo })
+        var connection = await new sql.ConnectionPool(conn)
+        await connection.close()
+        await connection.connect(async function(err) {
+          if (err) {
+            logger.log({ level: "error", message: "Error connecting to DB", err })
+          } else {
+            logger.log({ level: "info", message: "Connected to DB" })
+            var req = await new sql.Request(connection)
+            let tableName = "xrxQuestResultTransaction"
+            let qry = `insert into ${tableName} (TransactionId, VendorAccessionNo, MessageControlId, LabResultSendDateTime, VendorOrderReferenceNo, PatId, VendorOnFilePatLastName, VendorOnFilePatFirstName, VendorOnFilePatDOB, VendorOnFilePatSex, VendorOnFilePatSSN) Values('${recNo}', 
+                            '${vendor_accession_no}', 
+                            '${message_control_id}', 
+                            '${lab_result_send_datetime}', 
+                            '${vendor_order_referenceno}', 
+                            '${patid}', 
+                            '${vendor_onfile_pat_lastname}', 
+                            '${vendor_onfile_pat_firstname}', 
+                            '${vendor_onfile_pat_dob}', 
+                            '${vendor_onfile_pat_sex}', 
+                            '${vendor_onfile_pat_ssn}')`
+            logger.log({ level: "info", message: "query: ", qry })
+            const data = await req.query(qry, async function(err, result) {
+              if (err) {
+                await connection.close()
+                logger.log({ level: "error", message: err })
+              } else {
+                await connection.close()
+                logger.log({ level: "info", message: "Creted transaction", result })
+                resolve(recNo, obx)
+              }
+            })
+          }
+        })
+      }
+      catch (err) {
+        let errorMessage = "Failed creating transaction" + JSON.stringify(err);
+        logger.log({ level:"error",message:errorMessage})
+        let error=new Error(errorMessage)
+        reject(error, false)
+      }
   })
 }
 
-const createQuestResultObservationResults = (hl7Result,hl7ResultIndex,transctionId) => {
-  return new Promise(async (resolve, reject) => {
-      try {
+const createObrResult = async(recNo, obx) => {
+  logger.log({ level: "info", message: "obx array", obx })
+  logger.log({
+    level: "info",
+    message: "Creating result for transaction with id: ",
+    recNo
+  })
+  if (obx.length > 0) {
+    await Promise.all(
+      obx.map(async result => {
         const {
           labresult_valuetype,
           labresult_analyte_number,
@@ -90,42 +118,60 @@ const createQuestResultObservationResults = (hl7Result,hl7ResultIndex,transction
           labresult_status,
           labresult_datetime,
           labresult_fillerId
-        } = hl7Result;
-        var qry=`insert into xrxQuestResultObservationResult  (TransactionId,RequestItemId,LabResultValueType, LabResultAnalyteNumber, LabResultAnalyteName, LabResultMeasureUnits, LabResultNormalRange, LabResultNormalcyStatus, LabResultStatus, LabResultDateTime, LabResultFillerId) 
-        Values('${transctionId}',
-              1,
-              '${labresult_valuetype}', 
-              '${labresult_analyte_number}', 
-              '${labresult_analyte_name}', 
-              '${labresult_measure_units}', 
-              '${labresult_normal_range}', 
-              '${labresult_normalcy_status}', 
-              '${labresult_status}', 
-              '${labresult_datetime}', 
-              '${labresult_fillerId}')`;
-        let result = await sql.query(qry);
-        logger.log({ level:"info",message:"Created result"})
-        resolve(null, true)
-      } catch (err) {
-        let errorMessage = "Failed creating result" + JSON.stringify(err);
-        logger.log({ level:"error",message:errorMessage})
-        let error=new Error(errorMessage)
-        reject(error, false)
-      }
-    })
+        } = result
+        var connection = await new sql.ConnectionPool(conn)
+        await connection.close()
+        await connection.connect(async function(err) {
+          if (err) {
+            logger.log({
+              level: "error",
+              message: "Error connecting with DB",
+              err
+            })
+          } else {
+            var req = await new sql.Request(connection)
+            var qry = `insert into xrxQuestResultObservationResult  (TransactionId,RequestItemId,LabResultValueType, LabResultAnalyteNumber, LabResultAnalyteName, LabResultMeasureUnits, LabResultNormalRange, LabResultNormalcyStatus, LabResultStatus, LabResultDateTime, LabResultFillerId) 
+                  Values('${recNo}',
+                        1,
+                        '${labresult_valuetype}', 
+                        '${labresult_analyte_number}', 
+                        '${labresult_analyte_name}', 
+                        '${labresult_measure_units}', 
+                        '${labresult_normal_range}', 
+                        '${labresult_normalcy_status}', 
+                        '${labresult_status}', 
+                        '${labresult_datetime}', 
+                        '${labresult_fillerId}')`
+            logger.log({
+              level: "info",
+              message: "Query for result creating:",
+              qry
+            })
+            const data = await req.query(qry, async function(err, result) {
+              if (err) {
+                logger.log({ level: "error", message: err })
+              } else {
+                logger.log({ level: "info", message: "Result saved"})
+                resolve(true)
+              }
+            })
+          }
+        })
+      })
+    )
+  } else {
+    logger.log({ level: "info", message: "obx array not coming" })
+  }
 }
 
 exports.saveToDB= (hl7Obj)=>{
   return new Promise(async (result,reject)=>{
-    await sql.close();
-    await sql.connect(conn);
-    createQuestResultTransaction(hl7Obj)
+    createTransaction(hl7Obj)
     .then(async (transactionId)=>{
       let { obx } = hl7Obj;
-      obx.reduce((accumulatedPromise,nextResult,nextResultIndex)=>{
-          return createQuestResultObservationResults(nextResult,nextResultIndex,transactionId);
-      },Promise.resolve())
-      .then(()=> console.log('savetodb then'))
+      createObrResult(transactionId, obx).then(()=>{
+        console.log('completed wohoooooo')
+      })
     })
     .catch(async (err)=>{
       console.log('failed ' + JSON.stringify(err))
