@@ -28,9 +28,18 @@ exports.downloadHl7Files = () => {
       })
       Promise.all(downloads)
         .then(() => {
-          sftp.end();
-          logger.log({ level:"info",message:"completed downloading files"})
-          resolve(localFiles)
+            var filesToDelete=[];
+            files.forEach(file => {
+              const remoteFilename = process.env.AEGIS_REMOTE_PATH + file.name
+              filesToDelete.push(sftp.delete(remoteFilename))
+            })
+
+            Promise.all(filesToDelete)
+            .then(()=>{
+              sftp.end();
+              logger.log({ level:"info",message:"completed downloading files"})
+              resolve(localFiles)
+            })
         })
         .catch((err) => {
           sftp.end()
