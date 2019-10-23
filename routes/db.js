@@ -82,7 +82,7 @@ const createTransaction = async(hl7Obj) =>{
                 logger.log({ level: "error", message: err })
               } else {
                 await connection.close()
-                logger.log({ level: "info", message: "Creted transaction", result })
+                logger.log({ level: "info", message: "Transaction created" })
                 resolve(recNo, obx)
               }
             })
@@ -98,16 +98,13 @@ const createTransaction = async(hl7Obj) =>{
   })
 }
 
-const createObrResult = async(recNo, obx) => {
-  logger.log({ level: "info", message: "obx array", obx })
-  logger.log({
-    level: "info",
-    message: "Creating result for transaction with id: ",
-    recNo
-  })
-  if (obx.length > 0) {
-    await Promise.all(
-      obx.map(async result => {
+exports.saveToDB= (hl7Obj)=>{
+  return new Promise(async (resolve,reject)=>{
+    createTransaction(hl7Obj)
+    .then(async (recNo)=>{
+      let { obx } = hl7Obj;
+      let len = obx.length;
+      obx.map(async(result)=>{
         const {
           labresult_valuetype,
           labresult_analyte_number,
@@ -142,35 +139,22 @@ const createObrResult = async(recNo, obx) => {
                         '${labresult_status}', 
                         '${labresult_datetime}', 
                         '${labresult_fillerId}')`
-            logger.log({
-              level: "info",
-              message: "Query for result creating:",
-              qry
-            })
             const data = await req.query(qry, async function(err, result) {
               if (err) {
+                await connection.close()
                 logger.log({ level: "error", message: err })
               } else {
-                logger.log({ level: "info", message: "Result saved"})
-                resolve(true)
+                len--;
+                logger.log({level:"info", message:"length OBX:", len})
+                await connection.close()
+                logger.log({ level: "info", message: "Result Created", result })
+                if(len == 0) {
+                  resolve('Success, results added')
+                }
               }
             })
           }
         })
-      })
-    )
-  } else {
-    logger.log({ level: "info", message: "obx array not coming" })
-  }
-}
-
-exports.saveToDB= (hl7Obj)=>{
-  return new Promise(async (result,reject)=>{
-    createTransaction(hl7Obj)
-    .then(async (transactionId)=>{
-      let { obx } = hl7Obj;
-      createObrResult(transactionId, obx).then(()=>{
-        console.log('completed wohoooooo')
       })
     })
     .catch(async (err)=>{

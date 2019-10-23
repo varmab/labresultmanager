@@ -14,8 +14,8 @@ class LabResultManager {
       localFiles.map((file)=>{
         hl7.parseHl7File(file)
         .then((hl7Obj)=>{
-          db.saveToDB(hl7Obj).then(()=>{
-            logger.log({level:"info", message:"COMPLETED"})
+          db.saveToDB(hl7Obj).then((value)=>{
+            logger.log({level:"info",message:value})
           })
         })
       })
