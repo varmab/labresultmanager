@@ -1,0 +1,22 @@
+{"level":"info","message":"connecting to sftp"}
+{"level":"info","message":"sftp connection established"}
+{"level":"info","message":"completed downloading files"}
+{"level":"info","message":"Fetched parsed values of HL7 file"}
+{"level":"info","message":"Connected to DB"}
+{"level":"info","message":"query: ","qry":"SELECT PatId FROM xrxPat WHERE (LastName = 'Test' AND FirstName = 'Zeus' AND Birthdate = '1970-01-01 05:23:40' AND Sex = 'M')"}
+{"level":"info","message":"patId","result":{"recordsets":[[]],"recordset":[],"output":{},"rowsAffected":[0]}}
+{"level":"info","message":"connecting to sftp"}
+{"level":"info","message":"sftp connection established"}
+{"level":"info","message":"completed downloading files"}
+{"level":"info","message":"Fetched parsed values of HL7 file"}
+{"level":"info","message":"Fetched parsed values of HL7 file"}
+{"level":"info","message":"Fetched parsed values of HL7 file"}
+{"level":"info","message":"Connected to DB"}
+{"level":"info","message":"query: ","qry":"SELECT PatId FROM xrxPat WHERE (LastName = 'Test' AND FirstName = 'Poseidon' AND Birthdate = '1970-01-01 12:32:20' AND Sex = 'M')"}
+{"level":"info","message":"Connected to DB"}
+{"level":"info","message":"query: ","qry":"SELECT PatId FROM xrxPat WHERE (LastName = 'Test' AND FirstName = 'Zeus' AND Birthdate = '1970-01-01 05:23:40' AND Sex = 'M')"}
+{"level":"info","message":"Connected to DB"}
+{"level":"info","message":"query: ","qry":"SELECT PatId FROM xrxPat WHERE (LastName = 'Test' AND FirstName = 'Poseidon' AND Birthdate = '1970-01-01 12:32:20' AND Sex = 'M')"}
+{"level":"info","message":"patId","result":{"recordsets":[[]],"recordset":[],"output":{},"rowsAffected":[0]}}
+{"level":"info","message":"patId","result":{"recordsets":[[]],"recordset":[],"output":{},"rowsAffected":[0]}}
+{"level":"info","message":"patId","result":{"recordsets":[[]],"recordset":[],"output":{},"rowsAffected":[0]}}
