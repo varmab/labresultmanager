@@ -51,16 +51,18 @@ const fetchPatId = async(hl7Obj) =>{
             logger.log({ level: "info", message: "Connected to DB" })
             var req = await new sql.Request(connection)
             let tableName = "xrxPat"
-            let qry = `SELECT PatId FROM ${tableName} WHERE (LastName = '${vendor_onfile_pat_lastname}' AND FirstName = '${vendor_onfile_pat_firstname}' AND Birthdate = '${vendor_onfile_pat_dob}' AND Sex = '${vendor_onfile_pat_sex}')`
+            // let qry = `SELECT PatId FROM ${tableName} WHERE (LastName = '${vendor_onfile_pat_lastname}' AND FirstName = '${vendor_onfile_pat_firstname}' AND Birthdate = '${vendor_onfile_pat_dob}' AND Sex = '${vendor_onfile_pat_sex}')`
+            let qry = "SELECT PatId FROM xrxPat WHERE (LastName = 'NEW PAT' AND FirstName = 'TEST' AND Birthdate = '1980-12-29 00:00:00' AND Sex = 'M')"
             logger.log({ level: "info", message: "query: ", qry })
             const data = await req.query(qry, async function(err, result) {
               if (err) {
                 await connection.close()
                 logger.log({ level: "error", message: err })
               } else {
+                let PatId = result.recordset[0].PatId
                 await connection.close()
-                logger.log({ level: "info", message: "patId", result })
-                // resolve(recNo, obx)
+                logger.log({ level: "info", message: "patId", PatId })
+                resolve(PatId)
               }
             })
           }
@@ -85,7 +87,7 @@ var generateUUID = () => {
   return uuid;
 };
 
-const createTransaction = async(hl7Obj) =>{
+const createTransaction = async(hl7Obj, PatId) =>{
   let { orc, msh, pid, obx } = hl7Obj
   let { transaction_id, vendor_accession_no } = orc
   let { message_control_id, lab_result_send_datetime } = msh
@@ -123,7 +125,7 @@ const createTransaction = async(hl7Obj) =>{
                             '${message_control_id}', 
                             '${lab_result_send_datetime}', 
                             '${vendor_order_referenceno}', 
-                            '${patid}', 
+                            '${PatId}', 
                             '${vendor_onfile_pat_lastname}', 
                             '${vendor_onfile_pat_firstname}', 
                             '${vendor_onfile_pat_dob}', 
@@ -155,64 +157,70 @@ const createTransaction = async(hl7Obj) =>{
 exports.saveToDB= (hl7Obj)=>{
   return new Promise(async (resolve,reject)=>{
     fetchPatId(hl7Obj)
-    // .then(async (recNo)=>{
-    //   let { obx } = hl7Obj;
-    //   let len = obx.length;
-    //   obx.map(async(result)=>{
-    //     const {
-    //       labresult_valuetype,
-    //       labresult_analyte_number,
-    //       labresult_analyte_name,
-    //       labresult_measure_units,
-    //       labresult_normal_range,
-    //       labresult_normalcy_status,
-    //       labresult_status,
-    //       labresult_datetime,
-    //       labresult_fillerId
-    //     } = result
-    //     var connection = await new sql.ConnectionPool(conn)
-    //     await connection.close()
-    //     await connection.connect(async function(err) {
-    //       if (err) {
-    //         logger.log({
-    //           level: "error",
-    //           message: "Error connecting with DB",
-    //           err
-    //         })
-    //       } else {
-    //         var req = await new sql.Request(connection)
-    //         var qry = `insert into xrxQuestResultObservationResult  (TransactionId,RequestItemId,LabResultValueType, LabResultAnalyteNumber, LabResultAnalyteName, LabResultMeasureUnits, LabResultNormalRange, LabResultNormalcyStatus, LabResultStatus, LabResultDateTime, LabResultFillerId) 
-    //               Values('${recNo}',
-    //                     1,
-    //                     '${labresult_valuetype}', 
-    //                     '${labresult_analyte_number}', 
-    //                     '${labresult_analyte_name}', 
-    //                     '${labresult_measure_units}', 
-    //                     '${labresult_normal_range}', 
-    //                     '${labresult_normalcy_status}', 
-    //                     '${labresult_status}', 
-    //                     '${labresult_datetime}', 
-    //                     '${labresult_fillerId}')`
-    //         const data = await req.query(qry, async function(err, result) {
-    //           if (err) {
-    //             await connection.close()
-    //             logger.log({ level: "error", message: err })
-    //           } else {
-    //             len--;
-    //             logger.log({level:"info", message:"length OBX:", len})
-    //             await connection.close()
-    //             logger.log({ level: "info", message: "Result Created", result })
-    //             if(len == 0) {
-    //               resolve('Success, results added')
-    //             }
-    //           }
-    //         })
-    //       }
-    //     })
-    //   })
-    // })
-    // .catch(async (err)=>{
-    //   console.log('failed ' + JSON.stringify(err))
-    // })
+    .then(async(PatId)=>{
+      createTransaction(hl7Obj, PatId)
+      .then(async (recNo)=>{
+        let { obx } = hl7Obj;
+        let len = obx.length;
+        obx.map(async(result)=>{
+          const {
+            labresult_valuetype,
+            labresult_analyte_number,
+            labresult_analyte_name,
+            labresult_measure_units,
+            labresult_normal_range,
+            labresult_normalcy_status,
+            labresult_status,
+            labresult_datetime,
+            labresult_fillerId
+          } = result
+          var connection = await new sql.ConnectionPool(conn)
+          await connection.close()
+          await connection.connect(async function(err) {
+            if (err) {
+              logger.log({
+                level: "error",
+                message: "Error connecting with DB",
+                err
+              })
+            } else {
+              var req = await new sql.Request(connection)
+              var qry = `insert into xrxQuestResultObservationResult  (TransactionId,RequestItemId,LabResultValueType, LabResultAnalyteNumber, LabResultAnalyteName, LabResultMeasureUnits, LabResultNormalRange, LabResultNormalcyStatus, LabResultStatus, LabResultDateTime, LabResultFillerId) 
+                    Values('${recNo}',
+                          1,
+                          '${labresult_valuetype}', 
+                          '${labresult_analyte_number}', 
+                          '${labresult_analyte_name}', 
+                          '${labresult_measure_units}', 
+                          '${labresult_normal_range}', 
+                          '${labresult_normalcy_status}', 
+                          '${labresult_status}', 
+                          '${labresult_datetime}', 
+                          '${labresult_fillerId}')`
+              const data = await req.query(qry, async function(err, result) {
+                if (err) {
+                  await connection.close()
+                  logger.log({ level: "error", message: err })
+                } else {
+                  len--;
+                  logger.log({level:"info", message:"length OBX:", len})
+                  await connection.close()
+                  logger.log({ level: "info", message: "Result Created", result })
+                  if(len == 0) {
+                    resolve('Success, results added')
+                  }
+                }
+              })
+            }
+          })
+        })
+      })
+      .catch(async (err)=>{
+        console.log('failed ' + JSON.stringify(err))
+      })
+    })
+    .catch(async (err)=>{
+      console.log('failed on fetching patId ' + JSON.stringify(err))
+    })
   })
 }
