@@ -24,11 +24,11 @@ const formatDate=(date)=>{
 const formatDateForFetch=(date)=>{
   const d = new Date(parseInt(date));
   const modi =  d.toISOString();
-  return moment.utc(modi).format('YYYY-MM-DD hh:mm:ss');
+  return moment.utc(modi).format('YYYY-MM-DD');
 }
 
 const fetchPatId = async(hl7Obj) =>{
-  let { orc, msh, pid, obx } = hl7Obj
+  let { pid } = hl7Obj
   let {
     patid,
     vendor_onfile_pat_lastname,
@@ -51,15 +51,15 @@ const fetchPatId = async(hl7Obj) =>{
             logger.log({ level: "info", message: "Connected to DB" })
             var req = await new sql.Request(connection)
             let tableName = "xrxPat"
-            // let qry = `SELECT PatId FROM ${tableName} WHERE (LastName = '${vendor_onfile_pat_lastname}' AND FirstName = '${vendor_onfile_pat_firstname}' AND Birthdate = '${vendor_onfile_pat_dob}' AND Sex = '${vendor_onfile_pat_sex}')`
-            let qry = "SELECT PatId FROM xrxPat WHERE (LastName = 'NEW PAT' AND FirstName = 'TEST' AND Birthdate = '1980-12-29 00:00:00' AND Sex = 'M')"
+            let qry = `SELECT PatId FROM ${tableName} WHERE (LastName = '${vendor_onfile_pat_lastname}' AND FirstName = '${vendor_onfile_pat_firstname}' AND Birthdate = '${vendor_onfile_pat_dob}' AND Sex = '${vendor_onfile_pat_sex}')`
             logger.log({ level: "info", message: "query: ", qry })
             const data = await req.query(qry, async function(err, result) {
               if (err) {
                 await connection.close()
                 logger.log({ level: "error", message: err })
               } else {
-                let PatId = result.recordset[0].PatId
+                logger.log({level:"info", message:result})
+                let PatId = result.recordset[0] ? result.recordset[0].PatId : "NOTFOUND"
                 await connection.close()
                 logger.log({ level: "info", message: "patId", PatId })
                 resolve(PatId)
