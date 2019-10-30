@@ -1,5 +1,6 @@
 var sql = require("mssql")
 var moment = require("moment-timezone")
+const utf8 = require("utf8")
 
 require("dotenv").config()
 
@@ -27,31 +28,12 @@ const formatDateForFetch = date => {
   return moment.utc(modi).format("YYYY-MM-DD")
 }
 
-const modifyString = str => {
-  return str.replace(/[\0\x08\x09\x1a\n\r"'\\\%]/g, function(char) {
-    switch (char) {
-      case "\0":
-        return "\\0"
-      case "\x08":
-        return "\\b"
-      case "\x09":
-        return "\\t"
-      case "\x1a":
-        return "\\z"
-      case "\n":
-        return "\\n"
-      case "\r":
-        return "\\r"
-      case '"':
-      case "'":
-      case "\\":
-      case "%":
-        return "\\" + char // prepends a backslash to backslash, percent,
-      // and double/single quotes
-      default:
-        return char
-    }
+const prepareNC = comments => {
+  let Nc = ""
+  comments.map(comment => {
+    Nc = Nc + "|" + comment.notes_comments
   })
+  return Nc.substr(1)
 }
 
 const fetchPatId = async hl7Obj => {
@@ -129,9 +111,6 @@ const createTransaction = async (hl7Obj, PatId, RawData) => {
     vendor_onfile_pat_ssn
   } = pid
 
-  let NotesComments = nte.join()
-  logger.log({ level: "info", message: " NotesComments", NotesComments })
-
   lab_result_send_datetime = lab_result_send_datetime
     ? formatDate(lab_result_send_datetime)
     : null
@@ -139,10 +118,8 @@ const createTransaction = async (hl7Obj, PatId, RawData) => {
     ? formatDate(vendor_onfile_pat_dob)
     : null
 
-  let message = await modifyString(RawData)
-  let nc = await modifyString(NotesComments)
-  logger.log({ level: "info", message: message })
-  logger.log({ level: "info", NC: nc })
+  let notesComments = await prepareNC(nte)
+  let rawData = utf8.decode(RawData)
   return new Promise(async (resolve, reject) => {
     try {
       var recNo = await generateUUID()
@@ -156,19 +133,7 @@ const createTransaction = async (hl7Obj, PatId, RawData) => {
           logger.log({ level: "info", message: "Connected to DB" })
           var req = await new sql.Request(connection)
           let tableName = "xrxQuestResultTransaction"
-          let qry = `insert into ${tableName} (TransactionId, VendorAccessionNo, MessageControlId, LabResultSendDateTime, VendorOrderReferenceNo, PatId, VendorOnFilePatLastName, VendorOnFilePatFirstName, VendorOnFilePatDOB, VendorOnFilePatSex, VendorOnFilePatSSN, RawData, NotesComments) Values('${recNo}', 
-                            '${vendor_accession_no}', 
-                            '${message_control_id}', 
-                            '${lab_result_send_datetime}', 
-                            '${vendor_order_referenceno}', 
-                            '${PatId}', 
-                            '${vendor_onfile_pat_lastname}', 
-                            '${vendor_onfile_pat_firstname}', 
-                            '${vendor_onfile_pat_dob}', 
-                            '${vendor_onfile_pat_sex}', 
-                            '${vendor_onfile_pat_ssn}',
-                            '${message}',
-                            '${nc}')`
+          let qry = `insert into ${tableName} (TransactionId, VendorAccessionNo, MessageControlId, LabResultSendDateTime, VendorOrderReferenceNo, PatId, VendorOnFilePatLastName, VendorOnFilePatFirstName, VendorOnFilePatDOB, VendorOnFilePatSex, VendorOnFilePatSSN, NotesComments, RawData) Values('${recNo}', '${vendor_accession_no}', '${message_control_id}', '${lab_result_send_datetime}', '${vendor_order_referenceno}', '${PatId}', '${vendor_onfile_pat_lastname}', '${vendor_onfile_pat_firstname}', '${vendor_onfile_pat_dob}', '${vendor_onfile_pat_sex}', '${vendor_onfile_pat_ssn}', '${notesComments}', '${rawData}')`
           logger.log({ level: "info", message: "query: ", qry })
           const data = await req.query(qry, async function(err, result) {
             if (err) {
