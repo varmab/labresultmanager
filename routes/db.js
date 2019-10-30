@@ -27,6 +27,33 @@ const formatDateForFetch = date => {
   return moment.utc(modi).format("YYYY-MM-DD")
 }
 
+const modifyString = str => {
+  return str.replace(/[\0\x08\x09\x1a\n\r"'\\\%]/g, function(char) {
+    switch (char) {
+      case "\0":
+        return "\\0"
+      case "\x08":
+        return "\\b"
+      case "\x09":
+        return "\\t"
+      case "\x1a":
+        return "\\z"
+      case "\n":
+        return "\\n"
+      case "\r":
+        return "\\r"
+      case '"':
+      case "'":
+      case "\\":
+      case "%":
+        return "\\" + char // prepends a backslash to backslash, percent,
+      // and double/single quotes
+      default:
+        return char
+    }
+  })
+}
+
 const fetchPatId = async hl7Obj => {
   let { pid } = hl7Obj
   let {
@@ -111,6 +138,11 @@ const createTransaction = async (hl7Obj, PatId, RawData) => {
   vendor_onfile_pat_dob = vendor_onfile_pat_dob
     ? formatDate(vendor_onfile_pat_dob)
     : null
+
+  let message = await modifyString(RawData)
+  let nc = await modifyString(NotesComments)
+  logger.log({ level: "info", message: message })
+  logger.log({ level: "info", NC: nc })
   return new Promise(async (resolve, reject) => {
     try {
       var recNo = await generateUUID()
@@ -124,7 +156,7 @@ const createTransaction = async (hl7Obj, PatId, RawData) => {
           logger.log({ level: "info", message: "Connected to DB" })
           var req = await new sql.Request(connection)
           let tableName = "xrxQuestResultTransaction"
-          let qry = `insert into ${tableName} (TransactionId, VendorAccessionNo, MessageControlId, LabResultSendDateTime, VendorOrderReferenceNo, PatId, VendorOnFilePatLastName, VendorOnFilePatFirstName, VendorOnFilePatDOB, VendorOnFilePatSex, VendorOnFilePatSSN, RawData, NotesComments) Values('${recNo}', 
+          let qry = `insert into ${tableName} (TransactionId, VendorAccessionNo, MessageControlId, LabResultSendDateTime, VendorOrderReferenceNo, PatId, VendorOnFilePatLastName, VendorOnFilePatFirstName, VendorOnFilePatDOB, VendorOnFilePatSex, VendorOnFilePatSSN, RawData) Values('${recNo}', 
                             '${vendor_accession_no}', 
                             '${message_control_id}', 
                             '${lab_result_send_datetime}', 
@@ -135,8 +167,7 @@ const createTransaction = async (hl7Obj, PatId, RawData) => {
                             '${vendor_onfile_pat_dob}', 
                             '${vendor_onfile_pat_sex}', 
                             '${vendor_onfile_pat_ssn}',
-                            '${RawData}',
-                            '${NotesComments}')`
+                            '${message}')`
           logger.log({ level: "info", message: "query: ", qry })
           const data = await req.query(qry, async function(err, result) {
             if (err) {
