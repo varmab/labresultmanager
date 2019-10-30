@@ -156,7 +156,7 @@ const createTransaction = async (hl7Obj, PatId, RawData) => {
           logger.log({ level: "info", message: "Connected to DB" })
           var req = await new sql.Request(connection)
           let tableName = "xrxQuestResultTransaction"
-          let qry = `insert into ${tableName} (TransactionId, VendorAccessionNo, MessageControlId, LabResultSendDateTime, VendorOrderReferenceNo, PatId, VendorOnFilePatLastName, VendorOnFilePatFirstName, VendorOnFilePatDOB, VendorOnFilePatSex, VendorOnFilePatSSN, RawData) Values('${recNo}', 
+          let qry = `insert into ${tableName} (TransactionId, VendorAccessionNo, MessageControlId, LabResultSendDateTime, VendorOrderReferenceNo, PatId, VendorOnFilePatLastName, VendorOnFilePatFirstName, VendorOnFilePatDOB, VendorOnFilePatSex, VendorOnFilePatSSN, RawData, NotesComments) Values('${recNo}', 
                             '${vendor_accession_no}', 
                             '${message_control_id}', 
                             '${lab_result_send_datetime}', 
@@ -167,7 +167,8 @@ const createTransaction = async (hl7Obj, PatId, RawData) => {
                             '${vendor_onfile_pat_dob}', 
                             '${vendor_onfile_pat_sex}', 
                             '${vendor_onfile_pat_ssn}',
-                            '${message}')`
+                            '${message}',
+                            '${nc}')`
           logger.log({ level: "info", message: "query: ", qry })
           const data = await req.query(qry, async function(err, result) {
             if (err) {
