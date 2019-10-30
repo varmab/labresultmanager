@@ -11,8 +11,8 @@ class LabResultManager {
     //Download Files to local folder
     sftp.downloadHl7Files().then(localFiles => {
       localFiles.map(file => {
-        hl7.parseHl7File(file).then(hl7Obj => {
-          db.saveToDB(hl7Obj).then(value => {
+        hl7.parseHl7File(file).then(values => {
+          db.saveToDB(values[0], values[1]).then(value => {
             logger.log({ level: "info", message: value })
           })
         })
