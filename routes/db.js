@@ -23,9 +23,13 @@ const formatDate = date => {
 }
 
 const formatDateForFetch = date => {
-  const d = new Date(parseInt(date))
-  const modi = d.toISOString()
-  return moment.utc(modi).format("YYYY-MM-DD")
+  logger.log({ level: "info", dateComing: date })
+  const year = date.substring(0, 4)
+  const month = date.substring(4, 6)
+  const day = date.substring(6, 8)
+  const modifiedDate = year + "-" + month + "-" + day
+  logger.log({ level: "info", modifiedDate: modifiedDate })
+  return modifiedDate
 }
 
 const prepareNC = comments => {
@@ -136,7 +140,7 @@ const createTransaction = async (hl7Obj, PatId, RawData) => {
           logger.log({ level: "info", message: "Connected to DB" })
           var req = await new sql.Request(connection)
           let tableName = "xrxQuestResultTransaction"
-          let qry = `insert into ${tableName} (TransactionId, VendorAccessionNo, MessageControlId, LabResultSendDateTime, VendorOrderReferenceNo, PatId, VendorOnFilePatLastName, VendorOnFilePatFirstName, VendorOnFilePatDOB, VendorOnFilePatSex, VendorOnFilePatSSN, NotesComments, RawData) Values('${recNo}', '${vendor_accession_no}', '${message_control_id}', '${lab_result_send_datetime}', '${vendor_order_referenceno}', '${PatId}', '${vendor_onfile_pat_lastname}', '${vendor_onfile_pat_firstname}', '${vendor_onfile_pat_dob}', '${vendor_onfile_pat_sex}', '${vendor_onfile_pat_ssn}', '${notesComments}', '${rawData}')`
+          let qry = `insert into ${tableName} (TransactionId, VendorAccessionNo, MessageControlId, LabResultSendDateTime, VendorOrderReferenceNo, PatId, VendorOnFilePatLastName, VendorOnFilePatFirstName, VendorOnFilePatDOB, VendorOnFilePatSex, VendorOnFilePatSSN, NotesComments) Values('${recNo}', '${vendor_accession_no}', '${message_control_id}', '${lab_result_send_datetime}', '${vendor_order_referenceno}', '${PatId}', '${vendor_onfile_pat_lastname}', '${vendor_onfile_pat_firstname}', '${vendor_onfile_pat_dob}', '${vendor_onfile_pat_sex}', '${vendor_onfile_pat_ssn}', '${notesComments}')`
           logger.log({ level: "info", message: "query: ", qry })
           const data = await req.query(qry, async function(err, result) {
             if (err) {
@@ -190,17 +194,17 @@ exports.saveToDB = (hl7Obj, RawData) => {
                   })
                 } else {
                   var req = await new sql.Request(connection)
-                  var qry = `insert into xrxQuestResultObservationResult  (TransactionId,RequestItemId,LabResultValueType, LabResultAnalyteNumber, LabResultAnalyteName, LabResultMeasureUnits, LabResultNormalRange, LabResultNormalcyStatus, LabResultStatus, LabResultDateTime, LabResultFillerId) 
+                  var qry = `insert into xrxQuestResultObservationResult  (TransactionId,RequestItemId,LabResultValueType, LabResultAnalyteNumber, LabResultAnalyteName, LabResultMeasureUnits, LabResultNormalRange, LabResultNormalcyStatus, LabResultStatus, LabResultDateTime, LabResultFillerId)
                     Values('${recNo}',
                           1,
-                          '${labresult_valuetype}', 
-                          '${labresult_analyte_number}', 
-                          '${labresult_analyte_name}', 
-                          '${labresult_measure_units}', 
-                          '${labresult_normal_range}', 
-                          '${labresult_normalcy_status}', 
-                          '${labresult_status}', 
-                          '${labresult_datetime}', 
+                          '${labresult_valuetype}',
+                          '${labresult_analyte_number}',
+                          '${labresult_analyte_name}',
+                          '${labresult_measure_units}',
+                          '${labresult_normal_range}',
+                          '${labresult_normalcy_status}',
+                          '${labresult_status}',
+                          '${labresult_datetime}',
                           '${labresult_fillerId}')`
                   const data = await req.query(qry, async function(
                     err,
