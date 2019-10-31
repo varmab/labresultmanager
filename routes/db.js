@@ -123,10 +123,11 @@ const createTransaction = async (hl7Obj, PatId, RawData) => {
     : null
 
   let notesComments = await prepareNC(nte)
-  let res = RawData.split("**")
+  let res = RawData.split("Aegis Lab Result^Aegis PDF Report")
   let rawData = utf8.encode(res[0])
   let pdfName = res[1]
-  logger.log({ level: "info", message: "printable report name", pdfName })
+  // logger.log({ level: "info", message: "printable report name", pdfName })
+  // logger.log({ level: "info", message: "raw data coming", rawData })
   return new Promise(async (resolve, reject) => {
     try {
       var recNo = await generateUUID()
@@ -141,7 +142,7 @@ const createTransaction = async (hl7Obj, PatId, RawData) => {
           var req = await new sql.Request(connection)
           let tableName = "xrxQuestResultTransaction"
           let qry = `insert into ${tableName} (TransactionId, VendorAccessionNo, MessageControlId, LabResultSendDateTime, VendorOrderReferenceNo, PatId, VendorOnFilePatLastName, VendorOnFilePatFirstName, VendorOnFilePatDOB, VendorOnFilePatSex, VendorOnFilePatSSN, NotesComments) Values('${recNo}', '${vendor_accession_no}', '${message_control_id}', '${lab_result_send_datetime}', '${vendor_order_referenceno}', '${PatId}', '${vendor_onfile_pat_lastname}', '${vendor_onfile_pat_firstname}', '${vendor_onfile_pat_dob}', '${vendor_onfile_pat_sex}', '${vendor_onfile_pat_ssn}', '${notesComments}')`
-          logger.log({ level: "info", message: "query: ", qry })
+          logger.log({ level: "info", message: "QUERYYYY: ", qry })
           const data = await req.query(qry, async function(err, result) {
             if (err) {
               await connection.close()
@@ -195,17 +196,7 @@ exports.saveToDB = (hl7Obj, RawData) => {
                 } else {
                   var req = await new sql.Request(connection)
                   var qry = `insert into xrxQuestResultObservationResult  (TransactionId,RequestItemId,LabResultValueType, LabResultAnalyteNumber, LabResultAnalyteName, LabResultMeasureUnits, LabResultNormalRange, LabResultNormalcyStatus, LabResultStatus, LabResultDateTime, LabResultFillerId)
-                    Values('${recNo}',
-                          1,
-                          '${labresult_valuetype}',
-                          '${labresult_analyte_number}',
-                          '${labresult_analyte_name}',
-                          '${labresult_measure_units}',
-                          '${labresult_normal_range}',
-                          '${labresult_normalcy_status}',
-                          '${labresult_status}',
-                          '${labresult_datetime}',
-                          '${labresult_fillerId}')`
+                  Values('${recNo}', 1, '${labresult_valuetype}', '${labresult_analyte_number}', '${labresult_analyte_name}', '${labresult_measure_units}', '${labresult_normal_range}', '${labresult_normalcy_status}', '${labresult_status}', '${labresult_datetime}', '${labresult_fillerId}')`
                   const data = await req.query(qry, async function(
                     err,
                     result
