@@ -119,9 +119,10 @@ const createTransaction = async (hl7Obj, PatId, RawData) => {
     : null
 
   let notesComments = await prepareNC(nte)
-  let res = utf8.encode(RawData).split("**")
-  let rawData = res[0]
+  let res = RawData.split("**")
+  let rawData = utf8.encode(res[0])
   let pdfName = res[1]
+  logger.log({ level: "info", message: "printable report name", pdfName })
   return new Promise(async (resolve, reject) => {
     try {
       var recNo = await generateUUID()
