@@ -231,9 +231,9 @@ exports.saveToDB = hl7Obj => {
   })
 }
 
-exports.updateRecWithRawData = RawData => {
+exports.updateRecWithRawData = (RawData, transactionId) => {
   let res = RawData.split("Aegis Lab Result^Aegis PDF Report")
-  let rawData = utf8.encode(res[0])
+  let rawData = utf8.encode(res[0]).replace(/\'/g, "\\'")
   let printableReport = res[1]
   // logger.log({ level: "info", message: "printable report name", printableReport })
   // logger.log({ level: "info", message: "raw data coming", rawData })
