@@ -68,29 +68,3 @@ exports.downloadHl7Files = () => {
       })
   })
 }
-
-// exports.deleteFile = fileName =>{
-//   return new Promise((resolve,reject)=>{
-//     logger.log({ level:"info",message:"connecting to sftp"})
-//     sftp.end();
-//     sftp
-//     .connect({
-//       host: process.env.AEGIS_HOST,
-//       port: process.env.AEGIS_PORT,
-//       username: process.env.AEGIS_USERNAME,
-//       password: process.env.AEGIS_PASSWORD
-//     })
-//     .then(() => {
-//       logger.log({ level:"info",message:"sftp connection established"})
-//       return sftp.delete(process.env.AEGIS_REMOTE_PATH+ fileName)
-//     })
-//     .then((status)=>{
-//       logger.log({level:"info", message:status})
-//       resolve(status)
-//     })
-//     .catch((err)=>{
-//       logger.log({level:"error", message:err})
-//       reject(err)
-//     })
-//   })
-// }

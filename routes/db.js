@@ -101,7 +101,7 @@ var generateUUID = () => {
   return uuid
 }
 
-const createTransaction = async (hl7Obj, PatId, RawData) => {
+const createTransaction = async (hl7Obj, PatId) => {
   let { orc, msh, pid, obx, nte } = hl7Obj
   let { transaction_id, vendor_accession_no } = orc
   let { message_control_id, lab_result_send_datetime } = msh
@@ -123,11 +123,6 @@ const createTransaction = async (hl7Obj, PatId, RawData) => {
     : null
 
   let notesComments = await prepareNC(nte)
-  let res = RawData.split("Aegis Lab Result^Aegis PDF Report")
-  let rawData = utf8.encode(res[0])
-  let PrintableReport = res[1]
-  // logger.log({ level: "info", message: "printable report name", PrintableReport })
-  // logger.log({ level: "info", message: "raw data coming", rawData })
   return new Promise(async (resolve, reject) => {
     try {
       var recNo = await generateUUID()
@@ -141,8 +136,12 @@ const createTransaction = async (hl7Obj, PatId, RawData) => {
           logger.log({ level: "info", message: "Connected to DB" })
           var req = await new sql.Request(connection)
           let tableName = "xrxQuestResultTransaction"
-          let qry = `insert into ${tableName} (TransactionId, VendorAccessionNo, MessageControlId, LabResultSendDateTime, VendorOrderReferenceNo, PatId, VendorOnFilePatLastName, VendorOnFilePatFirstName, VendorOnFilePatDOB, VendorOnFilePatSex, VendorOnFilePatSSN, NotesComments, RawData, PrintableReport) Values('${recNo}', '${vendor_accession_no}', '${message_control_id}', '${lab_result_send_datetime}', '${vendor_order_referenceno}', '${PatId}', '${vendor_onfile_pat_lastname}', '${vendor_onfile_pat_firstname}', '${vendor_onfile_pat_dob}', '${vendor_onfile_pat_sex}', '${vendor_onfile_pat_ssn}', '${notesComments}', '${rawData}', '${PrintableReport}')`
-          logger.log({ level: "info", message: "QUERYYYY: ", qry })
+          let qry = `insert into ${tableName} (TransactionId, VendorAccessionNo, MessageControlId, LabResultSendDateTime, VendorOrderReferenceNo, PatId, VendorOnFilePatLastName, VendorOnFilePatFirstName, VendorOnFilePatDOB, VendorOnFilePatSex, VendorOnFilePatSSN, NotesComments) Values('${recNo}', '${vendor_accession_no}', '${message_control_id}', '${lab_result_send_datetime}', '${vendor_order_referenceno}', '${PatId}', '${vendor_onfile_pat_lastname}', '${vendor_onfile_pat_firstname}', '${vendor_onfile_pat_dob}', '${vendor_onfile_pat_sex}', '${vendor_onfile_pat_ssn}', '${notesComments}')`
+          logger.log({
+            level: "info",
+            message: "Transaction Insert query: ",
+            qry
+          })
           const data = await req.query(qry, async function(err, result) {
             if (err) {
               await connection.close()
@@ -164,11 +163,11 @@ const createTransaction = async (hl7Obj, PatId, RawData) => {
   })
 }
 
-exports.saveToDB = (hl7Obj, RawData) => {
+exports.saveToDB = hl7Obj => {
   return new Promise(async (resolve, reject) => {
     fetchPatId(hl7Obj)
       .then(async PatId => {
-        createTransaction(hl7Obj, PatId, RawData)
+        createTransaction(hl7Obj, PatId)
           .then(async recNo => {
             let { obx } = hl7Obj
             let len = obx.length
@@ -214,7 +213,7 @@ exports.saveToDB = (hl7Obj, RawData) => {
                         result
                       })
                       if (len == 0) {
-                        resolve("Success, results added")
+                        resolve(recNo)
                       }
                     }
                   })
@@ -229,5 +228,113 @@ exports.saveToDB = (hl7Obj, RawData) => {
       .catch(async err => {
         console.log("failed on fetching patId " + JSON.stringify(err))
       })
+  })
+}
+
+exports.updateRecWithRawData = RawData => {
+  let res = RawData.split("Aegis Lab Result^Aegis PDF Report")
+  let rawData = utf8.encode(res[0])
+  let printableReport = res[1]
+  // logger.log({ level: "info", message: "printable report name", printableReport })
+  // logger.log({ level: "info", message: "raw data coming", rawData })
+  return new Promise(async (resolve, reject) => {
+    try {
+      var connection = await new sql.ConnectionPool(conn)
+      await connection.close()
+      await connection.connect(async function(err) {
+        if (err) {
+          logger.log({
+            level: "error",
+            message: "Error connecting to DB",
+            err
+          })
+        } else {
+          var req = await new sql.Request(connection)
+          let tableName = "xrxQuestResultTransaction"
+          let qry = `update ${tableName} set RawData = '${rawData}' where TransactionId = '${transactionId}'`
+          logger.log({
+            level: "info",
+            message: "update transaction query: ",
+            qry
+          })
+          const data = await req.query(qry, async function(err, result) {
+            if (err) {
+              await connection.close()
+              logger.log({
+                level: "error",
+                message: err
+              })
+            } else {
+              await connection.close()
+              logger.log({
+                level: "info",
+                message: "Transaction Updated with rawdata"
+              })
+              resolve(printableReport)
+            }
+          })
+        }
+      })
+    } catch (err) {
+      let errorMessage =
+        "Failed updating record with rawdata" + JSON.stringify(err)
+      logger.log({
+        level: "error",
+        message: errorMessage
+      })
+      let error = new Error(errorMessage)
+      reject(error, false)
+    }
+  })
+}
+exports.updateRecWithReport = (transactionId, printableReport) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      var connection = await new sql.ConnectionPool(conn)
+      await connection.close()
+      await connection.connect(async function(err) {
+        if (err) {
+          logger.log({
+            level: "error",
+            message: "Error connecting to DB",
+            err
+          })
+        } else {
+          var req = await new sql.Request(connection)
+          let tableName = "xrxQuestResultTransaction"
+          let qry = `update ${tableName} set PrintableReport = '${printableReport}' where TransactionId = '${transactionId}'`
+          logger.log({
+            level: "info",
+            message: "update report query: ",
+            qry
+          })
+          const data = await req.query(qry, async function(err, result) {
+            if (err) {
+              await connection.close()
+              logger.log({
+                level: "error",
+                message: err
+              })
+            } else {
+              await connection.close()
+              logger.log({
+                level: "info",
+                message: "Transaction Updated with report"
+              })
+              resolve("Successfully completed")
+            }
+          })
+        }
+      })
+    } catch (err) {
+      let errorMessage =
+        "Failed updating record withe report" + JSON.stringify(err)
+      logger.log({
+        level: "error",
+        message: errorMessage
+      })
+      let error = new Error(errorMessage)
+      reject(error, false)
+    }
   })
 }
