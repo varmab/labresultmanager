@@ -125,8 +125,8 @@ const createTransaction = async (hl7Obj, PatId, RawData) => {
   let notesComments = await prepareNC(nte)
   let res = RawData.split("Aegis Lab Result^Aegis PDF Report")
   let rawData = utf8.encode(res[0])
-  let pdfName = res[1]
-  // logger.log({ level: "info", message: "printable report name", pdfName })
+  let PrintableReport = res[1]
+  // logger.log({ level: "info", message: "printable report name", PrintableReport })
   // logger.log({ level: "info", message: "raw data coming", rawData })
   return new Promise(async (resolve, reject) => {
     try {
@@ -141,7 +141,7 @@ const createTransaction = async (hl7Obj, PatId, RawData) => {
           logger.log({ level: "info", message: "Connected to DB" })
           var req = await new sql.Request(connection)
           let tableName = "xrxQuestResultTransaction"
-          let qry = `insert into ${tableName} (TransactionId, VendorAccessionNo, MessageControlId, LabResultSendDateTime, VendorOrderReferenceNo, PatId, VendorOnFilePatLastName, VendorOnFilePatFirstName, VendorOnFilePatDOB, VendorOnFilePatSex, VendorOnFilePatSSN, NotesComments) Values('${recNo}', '${vendor_accession_no}', '${message_control_id}', '${lab_result_send_datetime}', '${vendor_order_referenceno}', '${PatId}', '${vendor_onfile_pat_lastname}', '${vendor_onfile_pat_firstname}', '${vendor_onfile_pat_dob}', '${vendor_onfile_pat_sex}', '${vendor_onfile_pat_ssn}', '${notesComments}')`
+          let qry = `insert into ${tableName} (TransactionId, VendorAccessionNo, MessageControlId, LabResultSendDateTime, VendorOrderReferenceNo, PatId, VendorOnFilePatLastName, VendorOnFilePatFirstName, VendorOnFilePatDOB, VendorOnFilePatSex, VendorOnFilePatSSN, NotesComments, RawData, PrintableReport) Values('${recNo}', '${vendor_accession_no}', '${message_control_id}', '${lab_result_send_datetime}', '${vendor_order_referenceno}', '${PatId}', '${vendor_onfile_pat_lastname}', '${vendor_onfile_pat_firstname}', '${vendor_onfile_pat_dob}', '${vendor_onfile_pat_sex}', '${vendor_onfile_pat_ssn}', '${notesComments}', '${rawData}', '${PrintableReport}')`
           logger.log({ level: "info", message: "QUERYYYY: ", qry })
           const data = await req.query(qry, async function(err, result) {
             if (err) {
