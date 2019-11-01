@@ -13,16 +13,20 @@ class LabResultManager {
       localFiles.map(file => {
         hl7.parseHl7File(file).then(values => {
           db.saveToDB(values[0]).then(transactionId => {
-            logger.log({ level: "info", transactionId: transactionId })
-            db.updateRecWithRawData(values[1], transactionId).then(
-              printableReport => {
-                db.updateRecWithReport(transactionId, printableReport).then(
-                  status => {
-                    logger.log({ level: "info", status: status })
-                  }
-                )
-              }
-            )
+            logger.log({
+              level: "info",
+              message: "Transaction and results saved with Id:",
+              transactionId
+            })
+            // db.updateRecWithRawData(values[1], transactionId).then(
+            //   printableReport => {
+            //     db.updateRecWithReport(transactionId, printableReport).then(
+            //       status => {
+            //         logger.log({ level: "info", status: status })
+            //       }
+            //     )
+            //   }
+            // )
           })
         })
       })
