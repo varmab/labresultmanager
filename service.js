@@ -3,6 +3,7 @@ let logger = require("./routes/logger")
 let sftp = require("./routes/sftp")
 let hl7 = require("./routes/hl7")
 let db = require("./routes/db")
+let updates = require("./routes/updateTransaction")
 
 global.__basedir = __dirname
 
@@ -18,15 +19,15 @@ class LabResultManager {
               message: "Transaction and results saved with Id:",
               transactionId
             })
-            // db.updateRecWithRawData(values[1], transactionId).then(
-            //   printableReport => {
-            //     db.updateRecWithReport(transactionId, printableReport).then(
-            //       status => {
-            //         logger.log({ level: "info", status: status })
-            //       }
-            //     )
-            //   }
-            // )
+            updates
+              .updateRecWithRawData(values[1], transactionId)
+              .then(printableReport => {
+                updates
+                  .updateRecWithReport(transactionId, printableReport)
+                  .then(status => {
+                    logger.log({ level: "info", status: status })
+                  })
+              })
           })
         })
       })

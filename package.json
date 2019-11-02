@@ -22,6 +22,7 @@
     "mssql": "^5.1.0",
     "node-cron": "^2.0.3",
     "ssh2-sftp-client": "^4.2.1",
+    "tedious": "^6.6.0",
     "utf8": "^3.0.0",
     "winston": "^3.2.1"
   }
