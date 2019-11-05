@@ -21,7 +21,7 @@ const formatDate = date => {
   return moment.utc(modi).format("MM/DD/YY hh:mm a")
 }
 
-const formatDateForFetch = date => {
+const formatDateToFetchPatId = date => {
   logger.log({ level: "info", dateComing: date })
   const year = date.substring(0, 4)
   const month = date.substring(4, 6)
@@ -31,12 +31,22 @@ const formatDateForFetch = date => {
   return modifiedDate
 }
 
-const prepareNC = comments => {
-  let Nc = ""
-  comments.map(comment => {
-    Nc = Nc + "|" + comment.notes_comments
+var generateUUID = () => {
+  var d = new Date().getTime()
+  var uuid = "xxxxxxxx-xxxx-4xxx".replace(/[xy]/g, function(c) {
+    var r = (d + Math.random() * 16) % 16 | 0
+    d = Math.floor(d / 16)
+    return (c == "x" ? r : (r & 0x3) | 0x8).toString(16)
   })
-  return Nc.substr(1)
+  return uuid
+}
+
+const joinValues = (values, field) => {
+  let result = ""
+  values.map(obj => {
+    result = result + "|" + obj[field]
+  })
+  return result.substr(1)
 }
 
 const fetchPatId = async hl7Obj => {
@@ -50,7 +60,7 @@ const fetchPatId = async hl7Obj => {
   } = pid
 
   vendor_onfile_pat_dob = vendor_onfile_pat_dob
-    ? formatDateForFetch(vendor_onfile_pat_dob)
+    ? formatDateToFetchPatId(vendor_onfile_pat_dob)
     : null
   return new Promise(async (resolve, reject) => {
     try {
@@ -71,12 +81,12 @@ const fetchPatId = async hl7Obj => {
               logger.log({ level: "error", message: err })
             } else {
               logger.log({ level: "info", message: result })
-              let PatId = result.recordset[0]
+              let patId = result.recordset[0]
                 ? result.recordset[0].PatId
                 : "NOTFOUND"
               await connection.close()
-              logger.log({ level: "info", message: "patId", PatId })
-              resolve(PatId)
+              logger.log({ level: "info", message: "patId fetched", patId })
+              resolve(patId)
             }
           })
         }
@@ -90,18 +100,8 @@ const fetchPatId = async hl7Obj => {
   })
 }
 
-var generateUUID = () => {
-  var d = new Date().getTime()
-  var uuid = "xxxxxxxx-xxxx-4xxx".replace(/[xy]/g, function(c) {
-    var r = (d + Math.random() * 16) % 16 | 0
-    d = Math.floor(d / 16)
-    return (c == "x" ? r : (r & 0x3) | 0x8).toString(16)
-  })
-  return uuid
-}
-
-const createTransaction = async (hl7Obj, PatId) => {
-  let { orc, msh, pid, obx, nte } = hl7Obj
+const createTransaction = async (hl7Obj, patId) => {
+  let { orc, msh, pid, nte } = hl7Obj
   let { transaction_id, vendor_accession_no } = orc
   let { message_control_id, lab_result_send_datetime } = msh
   let {
@@ -121,11 +121,15 @@ const createTransaction = async (hl7Obj, PatId) => {
     ? formatDate(vendor_onfile_pat_dob)
     : null
 
-  let notesComments = await prepareNC(nte)
+  let notesComments = await joinValues(nte, "notes_comments")
   return new Promise(async (resolve, reject) => {
     try {
-      var recNo = await generateUUID()
-      logger.log({ level: "info", message: "genereated recoNo", recNo })
+      var transactionId = await generateUUID()
+      logger.log({
+        level: "info",
+        message: "genereated transactionId",
+        transactionId
+      })
       var connection = await new sql.ConnectionPool(conn)
       await connection.close()
       await connection.connect(async function(err) {
@@ -135,7 +139,7 @@ const createTransaction = async (hl7Obj, PatId) => {
           logger.log({ level: "info", message: "Connected to DB" })
           var req = await new sql.Request(connection)
           let tableName = "xrxQuestResultTransaction"
-          let qry = `insert into ${tableName} (TransactionId, VendorAccessionNo, MessageControlId, LabResultSendDateTime, VendorOrderReferenceNo, PatId, VendorOnFilePatLastName, VendorOnFilePatFirstName, VendorOnFilePatDOB, VendorOnFilePatSex, VendorOnFilePatSSN, NotesComments) Values('${recNo}', '${vendor_accession_no}', '${message_control_id}', '${lab_result_send_datetime}', '${vendor_order_referenceno}', '${PatId}', '${vendor_onfile_pat_lastname}', '${vendor_onfile_pat_firstname}', '${vendor_onfile_pat_dob}', '${vendor_onfile_pat_sex}', '${vendor_onfile_pat_ssn}', '${notesComments}')`
+          let qry = `insert into ${tableName} (TransactionId, VendorAccessionNo, MessageControlId, LabResultSendDateTime, VendorOrderReferenceNo, PatId, VendorOnFilePatLastName, VendorOnFilePatFirstName, VendorOnFilePatDOB, VendorOnFilePatSex, VendorOnFilePatSSN, NotesComments) Values('${transactionId}', '${vendor_accession_no}', '${message_control_id}', '${lab_result_send_datetime}', '${vendor_order_referenceno}', '${patId}', '${vendor_onfile_pat_lastname}', '${vendor_onfile_pat_firstname}', '${vendor_onfile_pat_dob}', '${vendor_onfile_pat_sex}', '${vendor_onfile_pat_ssn}', '${notesComments}')`
           logger.log({
             level: "info",
             message: "Transaction Insert query: ",
@@ -148,7 +152,7 @@ const createTransaction = async (hl7Obj, PatId) => {
             } else {
               await connection.close()
               logger.log({ level: "info", message: "Transaction created" })
-              resolve(recNo, obx)
+              resolve(transactionId)
             }
           })
         }
@@ -162,12 +166,12 @@ const createTransaction = async (hl7Obj, PatId) => {
   })
 }
 
-exports.saveToDB = hl7Obj => {
+exports.saveToTransactionAndResult = hl7Obj => {
   return new Promise(async (resolve, reject) => {
     fetchPatId(hl7Obj)
-      .then(async PatId => {
-        createTransaction(hl7Obj, PatId)
-          .then(async recNo => {
+      .then(async patId => {
+        createTransaction(hl7Obj, patId)
+          .then(async transactionId => {
             let { obx } = hl7Obj
             let len = obx.length
             obx.map(async result => {
@@ -194,7 +198,7 @@ exports.saveToDB = hl7Obj => {
                 } else {
                   var req = await new sql.Request(connection)
                   var qry = `insert into xrxQuestResultObservationResult  (TransactionId,RequestItemId,LabResultValueType, LabResultAnalyteNumber, LabResultAnalyteName, LabResultMeasureUnits, LabResultNormalRange, LabResultNormalcyStatus, LabResultStatus, LabResultDateTime, LabResultFillerId)
-                  Values('${recNo}', 1, '${labresult_valuetype}', '${labresult_analyte_number}', '${labresult_analyte_name}', '${labresult_measure_units}', '${labresult_normal_range}', '${labresult_normalcy_status}', '${labresult_status}', '${labresult_datetime}', '${labresult_fillerId}')`
+                  Values('${transactionId}', 1, '${labresult_valuetype}', '${labresult_analyte_number}', '${labresult_analyte_name}', '${labresult_measure_units}', '${labresult_normal_range}', '${labresult_normalcy_status}', '${labresult_status}', '${labresult_datetime}', '${labresult_fillerId}')`
                   const data = await req.query(qry, async function(
                     err,
                     result
@@ -204,15 +208,13 @@ exports.saveToDB = hl7Obj => {
                       logger.log({ level: "error", message: err })
                     } else {
                       len--
-                      logger.log({ level: "info", message: "length OBX:", len })
                       await connection.close()
-                      logger.log({
-                        level: "info",
-                        message: "Result Created",
-                        result
-                      })
                       if (len == 0) {
-                        resolve(recNo)
+                        logger.log({
+                          level: "info",
+                          message: "Results Created"
+                        })
+                        resolve({ transactionId, patId })
                       }
                     }
                   })
@@ -227,5 +229,47 @@ exports.saveToDB = hl7Obj => {
       .catch(async err => {
         console.log("failed on fetching patId " + JSON.stringify(err))
       })
+  })
+}
+
+exports.saveToEhrOrders = (transactionId, patId, hl7Obj) => {
+  let { obr } = hl7Obj
+  return new Promise(async (resolve, reject) => {
+    logger.log({ level: "info", obr: obr })
+    var connection = await new sql.ConnectionPool(conn)
+    await connection.close()
+    await connection.connect(async err => {
+      if (err) {
+        logger.log({ level: "error", message: "Error connecting with DB", err })
+      } else {
+        var req = await new sql.Request(connection)
+        var d = moment().format()
+        var today = d.slice(0, 19).replace("T", " ")
+        var orderName = joinValues(obr, "order_name")
+        var uuid = "6390F002-8C9B-4FFC-9264-1AF3086AFBCB"
+        var recNo = uuid.substr(0, 38)
+        console.log("uuid", uuid)
+        console.log("recNo", recNo)
+        const tableName = "xrxEhr_orders "
+        var qry = `insert into ${tableName} (RecNo,PatId,DateOfVisit, OrderType, OrderName, OrderClass, OrderId, HasCompleteResult)
+        Values(${recNo}, '${patId}', '${today}', 'Lab Order', '${orderName}', 'Lab', '${transactionId}', 1)`
+        logger.log({ level: "info", Qry: qry })
+        resolve(transactionId)
+        // const data = await req.query(qry, async function(err, result) {
+        //   if (err) {
+        //     await connection.close()
+        //     logger.log({ level: "error", message: err })
+        //   } else {
+        //     await connection.close()
+        //     logger.log({
+        //       level: "info",
+        //       message: "Order Created",
+        //       result
+        //     })
+        //     resolve({ transactionId, patId })
+        //   }
+        // })
+      }
+    })
   })
 }

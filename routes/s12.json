@@ -109,6 +109,14 @@
           "component": [15, 1]
         }
       ]
+    },
+    "obr": {
+      "values": [
+        {
+          "field": "obr.order_name",
+          "component": [4, 2]
+        }
+      ]
     }
   }
 }
