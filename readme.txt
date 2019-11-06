@@ -1,4 +1,4 @@
-This program downloads hl7 filess from a secure ftp, parsing the hl7 files then fetching the values and inset them into tables.
+This program downloads hl7 files from a secure ftp, parsing the hl7 files then fetching the values and insert them into tables.
 # Node modules to be installed before running the program
 	1. Run: "npm install"
 	2. Run: "npm i forever -g"

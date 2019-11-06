@@ -12,20 +12,28 @@ class LabResultManager {
     //Download Files to local folder
     sftp.downloadHl7Files().then(localFiles => {
       localFiles.map(file => {
+        // Parsing hl7 files
         hl7.parseHl7File(file).then(values => {
+          // Saving the values to Transaction and Result tables
           db.saveToTransactionAndResult(values[0]).then(object => {
+            // Saving the values to EhrOrders table
             db.saveToEhrOrders(
               object.transactionId,
               object.patId,
               values[0]
             ).then(transactionId => {
+              // Updating the Transaction with rawData
               updates
                 .updateRecWithRawData(values[1], transactionId)
                 .then(printableReport => {
+                  // Updating the Transaction with printableReport
                   updates
                     .updateRecWithReport(transactionId, printableReport)
                     .then(status => {
-                      logger.log({ level: "info", status: status })
+                      logger.log({
+                        level: "info",
+                        status: status
+                      })
                     })
                 })
             })
