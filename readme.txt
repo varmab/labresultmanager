@@ -8,8 +8,8 @@ This program downloads hl7 files from a secure ftp, parsing the hl7 files then f
 	3. Run command to run one time: "node service.js"
     4. To check the logs open "combined.log" file
     5. To check the error logs open "error.log" file
-        4. To stop server run "forever stop 0"
-	5. To get the list of servers running: "forever list"
+    6. To stop server run "forever stop 0"
+	7. To get the list of servers running: "forever list"
 # To update credentials of secure sftp and database
 	1. Open ".env" file.
 	2. In the .env file, simply update the values of SFTP and Database credentials.
