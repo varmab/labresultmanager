@@ -36,10 +36,10 @@ class LabResultManager {
   }
 }
 
-LabResultManager.run()
+//Cron-job scheduled to run for every 10-mins
 
-// const task = cron.schedule("*/1 * * * *", () => {
-//   LabResultManager.run()
-// })
+const task = cron.schedule("*/10 * * * *", () => {
+  LabResultManager.run()
+})
 
-// task.start()
+task.start()
