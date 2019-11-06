@@ -33,7 +33,6 @@ exports.updateRecWithRawData = (RawData, transactionId) => {
         })
         let tableName = "xrxQuestResultTransaction"
         let qry = `update ${tableName} set RawData = '${rawData}' where TransactionId = '${transactionId}'`
-        logger.log({ level: "info", qry: qry })
         var request = new Request(qry, err => {
           if (err) {
             logger.log({
@@ -66,7 +65,6 @@ exports.updateRecWithReport = (transactionId, printableReport) => {
         })
         let tableName = "xrxQuestResultTransaction"
         let qry = `update ${tableName} set PrintableReport = CONVERT(varbinary(MAX),'${printableReport}') where TransactionId = '${transactionId}'`
-        logger.log({ level: "info", qry: qry })
         var request = new Request(qry, err => {
           if (err) {
             logger.log({

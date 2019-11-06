@@ -41,6 +41,14 @@ var generateUUID = () => {
   return uuid
 }
 
+var uuidv4 = () => {
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function(c) {
+    const r = (Math.random() * 16) | 0
+    const v = c === "x" ? r : (r & 0x3) | 0x8
+    return v.toString(16)
+  })
+}
+
 const joinValues = (values, field) => {
   let result = ""
   values.map(obj => {
@@ -243,32 +251,28 @@ exports.saveToEhrOrders = (transactionId, patId, hl7Obj) => {
         logger.log({ level: "error", message: "Error connecting with DB", err })
       } else {
         var req = await new sql.Request(connection)
+        var recNo = await uuidv4()
+        console.log(" recNo generated", recNo)
         var d = moment().format()
         var today = d.slice(0, 19).replace("T", " ")
         var orderName = joinValues(obr, "order_name")
-        var uuid = "6390F002-8C9B-4FFC-9264-1AF3086AFBCB"
-        var recNo = uuid.substr(0, 38)
-        console.log("uuid", uuid)
-        console.log("recNo", recNo)
         const tableName = "xrxEhr_orders "
-        var qry = `insert into ${tableName} (RecNo,PatId,DateOfVisit, OrderType, OrderName, OrderClass, OrderId, HasCompleteResult)
-        Values(${recNo}, '${patId}', '${today}', 'Lab Order', '${orderName}', 'Lab', '${transactionId}', 1)`
+        var qry = `insert into ${tableName} (RecNo, PatId, DateOfVisit, OrderType, OrderName, OrderClass, OrderId, HasCompleteResult) Values('${recNo}', '${patId}', '${today}', 'Lab Order', '${orderName}', 'Lab', '${transactionId}', 1)`
         logger.log({ level: "info", Qry: qry })
-        resolve(transactionId)
-        // const data = await req.query(qry, async function(err, result) {
-        //   if (err) {
-        //     await connection.close()
-        //     logger.log({ level: "error", message: err })
-        //   } else {
-        //     await connection.close()
-        //     logger.log({
-        //       level: "info",
-        //       message: "Order Created",
-        //       result
-        //     })
-        //     resolve({ transactionId, patId })
-        //   }
-        // })
+        const data = await req.query(qry, async function(err, result) {
+          if (err) {
+            await connection.close()
+            logger.log({ level: "error", message: err })
+          } else {
+            await connection.close()
+            logger.log({
+              level: "info",
+              message: "Order Created",
+              result
+            })
+            resolve(transactionId)
+          }
+        })
       }
     })
   })
