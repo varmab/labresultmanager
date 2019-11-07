@@ -52,19 +52,14 @@ exports.downloadHl7Files = () => {
               let error = new Error(errorMessage)
               reject(error)
             })
-        } else {
-          logger.log({
-            level: "info",
-            message: "There are no files available on server"
-          })
-          resolve
         }
       })
       .catch(err => {
-        let errorMessage = "Failed to download files:" + JSON.stringify(err)
-        logger.log({ level: "error", message: errorMessage })
-        let error = new Error(errorMessage)
-        reject(error)
+        logger.log({
+          level: "info",
+          message: "There are no files available on server",
+          err
+        })
       })
   })
 }

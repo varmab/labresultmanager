@@ -19,7 +19,7 @@ var config = {
 }
 
 exports.updateRecWithRawData = (RawData, transactionId) => {
-  let res = RawData.split("Aegis Lab Result^Aegis PDF Report")
+  let res = RawData.split("AEGIS^Report^PDF^Base64^")
   let rawData = utf8.encode(res[0]).replace(/\'/g, "\\'")
   let printableReport = res[1]
   return new Promise(async (resolve, reject) => {
@@ -65,6 +65,7 @@ exports.updateRecWithReport = (transactionId, printableReport) => {
         })
         let tableName = "xrxQuestResultTransaction"
         let qry = `update ${tableName} set PrintableReport = CONVERT(varbinary(MAX),'${printableReport}') where TransactionId = '${transactionId}'`
+        logger.log({ level: "info", qry: qry })
         var request = new Request(qry, err => {
           if (err) {
             logger.log({
