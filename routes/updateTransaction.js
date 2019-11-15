@@ -19,9 +19,7 @@ var config = {
 }
 
 exports.updateRecWithRawData = (RawData, transactionId) => {
-  let res = RawData.split("AEGIS^Report^PDF^Base64^")
-  let rawData = utf8.encode(res[0]).replace(/\'/g, "\\'")
-  let printableReport = res[1]
+  let rawData = utf8.encode(RawData).replace(/\'/g, "\\'")
   return new Promise(async (resolve, reject) => {
     try {
       var connection = new Connection(config)
@@ -42,7 +40,7 @@ exports.updateRecWithRawData = (RawData, transactionId) => {
             })
           } else {
             logger.log({ level: "info", message: "updated with rawdata" })
-            resolve(printableReport)
+            resolve(transactionId)
           }
         })
         connection.execSql(request)
@@ -54,6 +52,10 @@ exports.updateRecWithRawData = (RawData, transactionId) => {
 }
 
 exports.updateRecWithReport = (transactionId, printableReport) => {
+  console.log(
+    "TCL: exports.updateRecWithReport -> printableReport",
+    printableReport
+  )
   return new Promise(async (resolve, reject) => {
     try {
       var connection = new Connection(config)

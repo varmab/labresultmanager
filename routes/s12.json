@@ -107,6 +107,10 @@
         {
           "field": "obx.labresult_fillerId",
           "component": [15, 1]
+        },
+        {
+          "field": "obx.labresult_base64",
+          "component": [5, 5]
         }
       ]
     },

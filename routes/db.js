@@ -148,11 +148,11 @@ const createTransaction = async (hl7Obj, patId) => {
           var req = await new sql.Request(connection)
           let tableName = "xrxQuestResultTransaction"
           let qry = `insert into ${tableName} (TransactionId, VendorAccessionNo, MessageControlId, LabResultSendDateTime, VendorOrderReferenceNo, PatId, VendorOnFilePatLastName, VendorOnFilePatFirstName, VendorOnFilePatDOB, VendorOnFilePatSex, VendorOnFilePatSSN, NotesComments) Values('${transactionId}', '${vendor_accession_no}', '${message_control_id}', '${lab_result_send_datetime}', '${vendor_order_referenceno}', '${patId}', '${vendor_onfile_pat_lastname}', '${vendor_onfile_pat_firstname}', '${vendor_onfile_pat_dob}', '${vendor_onfile_pat_sex}', '${vendor_onfile_pat_ssn}', '${notesComments}')`
-          logger.log({
-            level: "info",
-            message: "Transaction Insert query: ",
-            qry
-          })
+          // logger.log({
+          //   level: "info",
+          //   message: "Transaction Insert query: ",
+          //   qry
+          // })
           const data = await req.query(qry, async function(err, result) {
             if (err) {
               await connection.close()
@@ -174,6 +174,30 @@ const createTransaction = async (hl7Obj, patId) => {
   })
 }
 
+exports.decodeBase64 = printableReport => {
+  console.log("TCL: printableReport", printableReport)
+  return new Promise(async (resolve, reject) => {
+    try {
+      var bin = await atob(printableReport)
+      logger.log({
+        level: "info",
+        message: "decoded",
+        bin
+      })
+      var writeStream = await fs.createWriteStream("report.pdf")
+      await writeStream.write(bin)
+      await writeStream.end()
+      resolve("success")
+    } catch (err) {
+      let errorMessage =
+        "Failed fetching printable report" + JSON.stringify(err)
+      logger.log({ level: "error", message: errorMessage })
+      let error = new Error(errorMessage)
+      reject(error, false)
+    }
+  })
+}
+
 exports.saveToTransactionAndResult = hl7Obj => {
   return new Promise(async (resolve, reject) => {
     fetchPatId(hl7Obj)
@@ -182,6 +206,7 @@ exports.saveToTransactionAndResult = hl7Obj => {
           .then(async transactionId => {
             let { obx } = hl7Obj
             let len = obx.length
+            let base64 = ""
             obx.map(async result => {
               const {
                 labresult_valuetype,
@@ -192,8 +217,12 @@ exports.saveToTransactionAndResult = hl7Obj => {
                 labresult_normalcy_status,
                 labresult_status,
                 labresult_datetime,
-                labresult_fillerId
+                labresult_fillerId,
+                labresult_base64
               } = result
+              if (labresult_base64.length > 10) {
+                base64 = labresult_base64
+              }
               var connection = await new sql.ConnectionPool(conn)
               await connection.close()
               await connection.connect(async function(err) {
@@ -222,7 +251,7 @@ exports.saveToTransactionAndResult = hl7Obj => {
                           level: "info",
                           message: "Results Created"
                         })
-                        resolve({ transactionId, patId })
+                        resolve({ transactionId, patId, base64 })
                       }
                     }
                   })
