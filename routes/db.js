@@ -1,5 +1,6 @@
 var sql = require("mssql")
 var moment = require("moment-timezone")
+const base64 = require("base64topdf")
 
 require("dotenv").config()
 
@@ -174,20 +175,11 @@ const createTransaction = async (hl7Obj, patId) => {
   })
 }
 
-exports.decodeBase64 = printableReport => {
-  console.log("TCL: printableReport", printableReport)
+exports.decodeBase64 = base64String => {
   return new Promise(async (resolve, reject) => {
     try {
-      var bin = await atob(printableReport)
-      logger.log({
-        level: "info",
-        message: "decoded",
-        bin
-      })
-      var writeStream = await fs.createWriteStream("report.pdf")
-      await writeStream.write(bin)
-      await writeStream.end()
-      resolve("success")
+      let decodedBase64 = base64.base64Decode(base64String, "report.pdf")
+      resolve(base64String)
     } catch (err) {
       let errorMessage =
         "Failed fetching printable report" + JSON.stringify(err)

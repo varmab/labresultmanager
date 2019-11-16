@@ -26,16 +26,16 @@ class LabResultManager {
               updates
                 .updateRecWithRawData(values[1], transactionId)
                 .then(tId => {
-                  // db.decodeBase64(object.base64).then(() => {
-                  updates
-                    .updateRecWithReport(transactionId, object.base64)
-                    .then(status => {
-                      logger.log({
-                        level: "info",
-                        status: status
+                  db.decodeBase64(object.base64).then(base64String => {
+                    updates
+                      .updateRecWithReport(transactionId, base64String)
+                      .then(status => {
+                        logger.log({
+                          level: "info",
+                          status: status
+                        })
                       })
-                    })
-                  // })
+                  })
                 })
             })
           })
@@ -47,8 +47,8 @@ class LabResultManager {
 
 //Cron-job scheduled to run for every 10-mins
 
-const task = cron.schedule("*/1 * * * *", () => {
-  LabResultManager.run()
-})
+// const task = cron.schedule("*/1 * * * *", () => {
+LabResultManager.run()
+// })
 
-task.start()
+// task.start()
