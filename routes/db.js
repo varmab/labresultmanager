@@ -1,6 +1,7 @@
 var sql = require("mssql")
 var moment = require("moment-timezone")
 const base64 = require("base64topdf")
+const fs = require("fs")
 
 require("dotenv").config()
 
@@ -175,21 +176,6 @@ const createTransaction = async (hl7Obj, patId) => {
   })
 }
 
-exports.decodeBase64 = base64String => {
-  return new Promise(async (resolve, reject) => {
-    try {
-      let decodedBase64 = base64.base64Decode(base64String, "report.pdf")
-      resolve(base64String)
-    } catch (err) {
-      let errorMessage =
-        "Failed fetching printable report" + JSON.stringify(err)
-      logger.log({ level: "error", message: errorMessage })
-      let error = new Error(errorMessage)
-      reject(error, false)
-    }
-  })
-}
-
 exports.saveToTransactionAndResult = hl7Obj => {
   return new Promise(async (resolve, reject) => {
     fetchPatId(hl7Obj)
@@ -276,7 +262,8 @@ exports.saveToEhrOrders = (transactionId, patId, hl7Obj) => {
         console.log(" recNo generated", recNo)
         var d = moment().format()
         var today = d.slice(0, 19).replace("T", " ")
-        var orderName = joinValues(obr, "order_name")
+        // var orderName = joinValues(obr, "order_name")
+        var orderName = obr[0].order_name
         const tableName = "xrxEhr_orders "
         var qry = `insert into ${tableName} (RecNo, PatId, DateOfVisit, OrderType, OrderName, OrderClass, OrderId, HasCompleteResult) Values('${recNo}', '${patId}', '${today}', 'Lab Order', '${orderName}', 'Lab', '${transactionId}', 1)`
         logger.log({ level: "info", Qry: qry })
@@ -296,5 +283,45 @@ exports.saveToEhrOrders = (transactionId, patId, hl7Obj) => {
         })
       }
     })
+  })
+}
+
+exports.creteFile = transactionId => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      var connection = await new sql.ConnectionPool(conn)
+      await connection.close()
+      await connection.connect(async function(err) {
+        if (err) {
+          logger.log({ level: "error", message: "Error connecting to DB", err })
+        } else {
+          var req = await new sql.Request(connection)
+          let tableName = "xrxQuestResultTransaction"
+          let qry = `SELECT PrintableReport FROM ${tableName} where TransactionId = '${transactionId}'`
+          const data = await req.query(qry, async function(err, result) {
+            if (err) {
+              await connection.close()
+              logger.log({ level: "error", message: err })
+            } else {
+              let res = result.recordsets[0]
+              fs.writeFile(
+                "binary_result.pdf",
+                res[0].PrintableReport,
+                function(err) {
+                  if (err) throw err
+                  resolve("Completed")
+                }
+              )
+              await connection.close()
+            }
+          })
+        }
+      })
+    } catch (err) {
+      let errorMessage = "Failed fetching PrintableReport" + JSON.stringify(err)
+      logger.log({ level: "error", message: errorMessage })
+      let error = new Error(errorMessage)
+      reject(error, false)
+    }
   })
 }

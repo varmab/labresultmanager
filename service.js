@@ -1,4 +1,6 @@
 const cron = require("node-cron")
+var Base64 = require("js-base64").Base64
+const fs = require("fs")
 let logger = require("./routes/logger")
 let sftp = require("./routes/sftp")
 let hl7 = require("./routes/hl7")
@@ -6,6 +8,33 @@ let db = require("./routes/db")
 let updates = require("./routes/updateTransaction")
 
 global.__basedir = __dirname
+global.atob = require("atob")
+
+var decodeBase64 = s => {
+  var e = {},
+    i,
+    b = 0,
+    c,
+    x,
+    l = 0,
+    a,
+    r = "",
+    w = String.fromCharCode,
+    L = s.length
+  var A = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+  for (i = 0; i < 64; i++) {
+    e[A.charAt(i)] = i
+  }
+  for (x = 0; x < L; x++) {
+    c = e[s.charAt(x)]
+    b = (b << 6) + c
+    l += 6
+    while (l >= 8) {
+      ;((a = (b >>> (l -= 8)) & 0xff) || x < L - 2) && (r += w(a))
+    }
+  }
+  return r
+}
 
 class LabResultManager {
   static run() {
@@ -25,17 +54,19 @@ class LabResultManager {
               // Updating the Transaction with rawData
               updates
                 .updateRecWithRawData(values[1], transactionId)
-                .then(tId => {
-                  db.decodeBase64(object.base64).then(base64String => {
-                    updates
-                      .updateRecWithReport(transactionId, base64String)
-                      .then(status => {
+                .then(async tId => {
+                  // Updating the Transaction with printable report
+                  updates
+                    .updateRecWithReport(transactionId, object.base64)
+                    .then(tId => {
+                      // Creating file with printable report varbinary
+                      db.creteFile(tId).then(status => {
                         logger.log({
                           level: "info",
-                          status: status
+                          message: status
                         })
                       })
-                  })
+                    })
                 })
             })
           })

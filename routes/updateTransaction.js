@@ -51,33 +51,26 @@ exports.updateRecWithRawData = (RawData, transactionId) => {
   })
 }
 
-exports.updateRecWithReport = (transactionId, printableReport) => {
-  console.log(
-    "TCL: exports.updateRecWithReport -> printableReport",
-    printableReport
-  )
+exports.updateRecWithReport = (transactionId, printableReport, filePath) => {
   return new Promise(async (resolve, reject) => {
     try {
       var connection = new Connection(config)
       connection.on("connect", function(err) {
-        logger.log({
-          level: "info",
-          message: "connected",
-          error: err
-        })
         let tableName = "xrxQuestResultTransaction"
-        let qry = `update ${tableName} set PrintableReport = CONVERT(varbinary(MAX),'${printableReport}') where TransactionId = '${transactionId}'`
-        logger.log({ level: "info", qry: qry })
+        let qry = `update ${tableName} set PrintableReport = CAST(N'' AS XML).value('xs:base64Binary("${printableReport}")', 'VARBINARY(MAX)') where TransactionId = '${transactionId}'`
         var request = new Request(qry, err => {
           if (err) {
             logger.log({
               level: "error",
-              message: "error while updating",
+              message: "error while updating with report",
               error: err
             })
           } else {
-            logger.log({ level: "info", message: "updated with report" })
-            resolve("COMPLETED")
+            logger.log({
+              level: "info",
+              message: "Transaction updated with report"
+            })
+            resolve(transactionId)
           }
         })
         connection.execSql(request)
