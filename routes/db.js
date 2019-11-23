@@ -1,6 +1,5 @@
 var sql = require("mssql")
 var moment = require("moment-timezone")
-const base64 = require("base64topdf")
 const fs = require("fs")
 
 require("dotenv").config()
