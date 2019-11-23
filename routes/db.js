@@ -285,7 +285,7 @@ exports.saveToEhrOrders = (transactionId, patId, hl7Obj) => {
   })
 }
 
-exports.creteFile = transactionId => {
+exports.createFile = transactionId => {
   return new Promise(async (resolve, reject) => {
     try {
       var connection = await new sql.ConnectionPool(conn)

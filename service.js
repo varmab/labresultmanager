@@ -60,7 +60,7 @@ class LabResultManager {
                     .updateRecWithReport(transactionId, object.base64)
                     .then(tId => {
                       // Creating file with printable report varbinary
-                      db.creteFile(tId).then(status => {
+                      db.createFile(tId).then(status => {
                         logger.log({
                           level: "info",
                           message: status
