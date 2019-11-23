@@ -250,7 +250,6 @@ exports.saveToTransactionAndResult = hl7Obj => {
 exports.saveToEhrOrders = (transactionId, patId, hl7Obj) => {
   let { obr } = hl7Obj
   return new Promise(async (resolve, reject) => {
-    logger.log({ level: "info", obr: obr })
     var connection = await new sql.ConnectionPool(conn)
     await connection.close()
     await connection.connect(async err => {

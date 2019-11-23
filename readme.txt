@@ -28,4 +28,9 @@ This program downloads hl7 files from a secure ftp, parsing the hl7 files then f
     │    │    └─────────────── hour (0 - 23)
     │    └──────────────────── minute (0 - 59)
     └───────────────────────── second (0 - 59, OPTIONAL)
-	
+    
+    
+## Process of checking the printable report pdf
+    1. Updated PrintableReport in xrxQuestResultTransaction with binary generated from base64 string.
+    2. Implemented creteFile function, to create pdf file with PrintableReport binary.
+    3. You can find it under project root folder with the name "binary_result.pdf". You can see it once the program is executed successfully.
