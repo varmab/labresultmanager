@@ -85,6 +85,10 @@
           "component": [3, 2]
         },
         {
+          "field": "obx.labresult_value",
+          "component": [5, 1]
+        },
+        {
           "field": "obx.labresult_measure_units",
           "component": [6, 2]
         },

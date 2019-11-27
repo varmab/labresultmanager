@@ -189,6 +189,7 @@ exports.saveToTransactionAndResult = hl7Obj => {
                 labresult_valuetype,
                 labresult_analyte_number,
                 labresult_analyte_name,
+                labresult_value,
                 labresult_measure_units,
                 labresult_normal_range,
                 labresult_normalcy_status,
@@ -211,8 +212,8 @@ exports.saveToTransactionAndResult = hl7Obj => {
                   })
                 } else {
                   var req = await new sql.Request(connection)
-                  var qry = `insert into xrxQuestResultObservationResult  (TransactionId,RequestItemId,LabResultValueType, LabResultAnalyteNumber, LabResultAnalyteName, LabResultMeasureUnits, LabResultNormalRange, LabResultNormalcyStatus, LabResultStatus, LabResultDateTime, LabResultFillerId)
-                  Values('${transactionId}', 1, '${labresult_valuetype}', '${labresult_analyte_number}', '${labresult_analyte_name}', '${labresult_measure_units}', '${labresult_normal_range}', '${labresult_normalcy_status}', '${labresult_status}', '${labresult_datetime}', '${labresult_fillerId}')`
+                  var qry = `insert into xrxQuestResultObservationResult  (TransactionId,RequestItemId,LabResultValueType, LabResultValue, LabResultAnalyteNumber, LabResultAnalyteName, LabResultMeasureUnits, LabResultNormalRange, LabResultNormalcyStatus, LabResultStatus, LabResultDateTime, LabResultFillerId)
+                  Values('${transactionId}', 1, '${labresult_valuetype}', '${labresult_value}', '${labresult_analyte_number}', '${labresult_analyte_name}', '${labresult_measure_units}', '${labresult_normal_range}', '${labresult_normalcy_status}', '${labresult_status}', '${labresult_datetime}', '${labresult_fillerId}')`
                   const data = await req.query(qry, async function(
                     err,
                     result
