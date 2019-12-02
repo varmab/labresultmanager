@@ -19,7 +19,25 @@ var conn = `Server=${config.server},1433;Database=${config.options.database};Use
 const formatDate = date => {
   const d = new Date(parseInt(date))
   const modi = d.toISOString()
-  return moment.utc(modi).format("MM/DD/YY hh:mm a")
+  return moment.utc(modi).format("YYYY-MM-DD hh:mm:ss")
+}
+
+const formatDateTime = date => {
+  if (date) {
+    const year = date.substring(0, 4)
+    const month = date.substring(4, 6)
+    const day = date.substring(6, 8)
+    const hr = date.substring(8, 10)
+    const min = date.substring(10, 12)
+    const sec = date.substring(12, 14)
+    let modified =
+      month + "-" + day + "-" + year + " " + hr + ":" + min + ":" + sec
+    let final = moment(modified).format("YYYY-MM-DD hh:mm:ss.000")
+    return final
+  } else {
+    let d = moment().format()
+    return d.slice(0, 19).replace("T", " ")
+  }
 }
 
 const formatDateToFetchPatId = date => {
@@ -122,6 +140,11 @@ const createTransaction = async (hl7Obj, patId) => {
     vendor_onfile_pat_sex,
     vendor_onfile_pat_ssn
   } = pid
+  // logger.log({
+  //   level: "info",
+  //   message: "send date time",
+  //   lab_result_send_datetime
+  // })
 
   lab_result_send_datetime = lab_result_send_datetime
     ? formatDate(lab_result_send_datetime)
@@ -198,6 +221,7 @@ exports.saveToTransactionAndResult = hl7Obj => {
                 labresult_fillerId,
                 labresult_base64
               } = result
+              let dateTime = formatDateTime(labresult_datetime)
               if (labresult_base64.length > 10) {
                 base64 = labresult_base64
               }
@@ -212,8 +236,12 @@ exports.saveToTransactionAndResult = hl7Obj => {
                   })
                 } else {
                   var req = await new sql.Request(connection)
-                  var qry = `insert into xrxQuestResultObservationResult  (TransactionId,RequestItemId,LabResultValueType, LabResultValue, LabResultAnalyteNumber, LabResultAnalyteName, LabResultMeasureUnits, LabResultNormalRange, LabResultNormalcyStatus, LabResultStatus, LabResultDateTime, LabResultFillerId)
-                  Values('${transactionId}', 1, '${labresult_valuetype}', '${labresult_value}', '${labresult_analyte_number}', '${labresult_analyte_name}', '${labresult_measure_units}', '${labresult_normal_range}', '${labresult_normalcy_status}', '${labresult_status}', '${labresult_datetime}', '${labresult_fillerId}')`
+                  var qry = `insert into xrxQuestResultObservationResult (TransactionId,RequestItemId,LabResultValueType, LabResultValue, LabResultAnalyteNumber, LabResultAnalyteName, LabResultMeasureUnits, LabResultNormalRange, LabResultNormalcyStatus, LabResultStatus, LabResultDateTime, LabResultFillerId) Values('${transactionId}', 1, '${labresult_valuetype}', '${labresult_value}', '${labresult_analyte_number}', '${labresult_analyte_name}', '${labresult_measure_units}', '${labresult_normal_range}', '${labresult_normalcy_status}', '${labresult_status}', '${dateTime}', '${labresult_fillerId}')`
+                  logger.log({
+                    level: "info",
+                    message: "Query prepared",
+                    qry
+                  })
                   const data = await req.query(qry, async function(
                     err,
                     result
