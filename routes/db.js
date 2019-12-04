@@ -31,9 +31,8 @@ const formatDateTime = date => {
     const min = date.substring(10, 12)
     const sec = date.substring(12, 14)
     let modified =
-      month + "-" + day + "-" + year + " " + hr + ":" + min + ":" + sec
-    let final = moment(modified).format("YYYY-MM-DD hh:mm:ss.000")
-    return final
+      year + "-" + month + "-" + day + " " + hr + ":" + min + ":" + sec
+    return modified
   } else {
     let d = moment().format()
     return d.slice(0, 19).replace("T", " ")
@@ -140,17 +139,11 @@ const createTransaction = async (hl7Obj, patId) => {
     vendor_onfile_pat_sex,
     vendor_onfile_pat_ssn
   } = pid
-  // logger.log({
-  //   level: "info",
-  //   message: "send date time",
-  //   lab_result_send_datetime
-  // })
-
   lab_result_send_datetime = lab_result_send_datetime
-    ? formatDate(lab_result_send_datetime)
+    ? formatDateTime(lab_result_send_datetime)
     : null
   vendor_onfile_pat_dob = vendor_onfile_pat_dob
-    ? formatDate(vendor_onfile_pat_dob)
+    ? formatDateToFetchPatId(vendor_onfile_pat_dob)
     : null
 
   let notesComments = await joinValues(nte, "notes_comments")
@@ -172,11 +165,6 @@ const createTransaction = async (hl7Obj, patId) => {
           var req = await new sql.Request(connection)
           let tableName = "xrxQuestResultTransaction"
           let qry = `insert into ${tableName} (TransactionId, VendorAccessionNo, MessageControlId, LabResultSendDateTime, VendorOrderReferenceNo, PatId, VendorOnFilePatLastName, VendorOnFilePatFirstName, VendorOnFilePatDOB, VendorOnFilePatSex, VendorOnFilePatSSN, NotesComments) Values('${transactionId}', '${vendor_accession_no}', '${message_control_id}', '${lab_result_send_datetime}', '${vendor_order_referenceno}', '${patId}', '${vendor_onfile_pat_lastname}', '${vendor_onfile_pat_firstname}', '${vendor_onfile_pat_dob}', '${vendor_onfile_pat_sex}', '${vendor_onfile_pat_ssn}', '${notesComments}')`
-          // logger.log({
-          //   level: "info",
-          //   message: "Transaction Insert query: ",
-          //   qry
-          // })
           const data = await req.query(qry, async function(err, result) {
             if (err) {
               await connection.close()
@@ -221,6 +209,7 @@ exports.saveToTransactionAndResult = hl7Obj => {
                 labresult_fillerId,
                 labresult_base64
               } = result
+              // let labresult_datetime = "20191111152504"
               let dateTime = formatDateTime(labresult_datetime)
               if (labresult_base64.length > 10) {
                 base64 = labresult_base64
@@ -237,11 +226,6 @@ exports.saveToTransactionAndResult = hl7Obj => {
                 } else {
                   var req = await new sql.Request(connection)
                   var qry = `insert into xrxQuestResultObservationResult (TransactionId,RequestItemId,LabResultValueType, LabResultValue, LabResultAnalyteNumber, LabResultAnalyteName, LabResultMeasureUnits, LabResultNormalRange, LabResultNormalcyStatus, LabResultStatus, LabResultDateTime, LabResultFillerId) Values('${transactionId}', 1, '${labresult_valuetype}', '${labresult_value}', '${labresult_analyte_number}', '${labresult_analyte_name}', '${labresult_measure_units}', '${labresult_normal_range}', '${labresult_normalcy_status}', '${labresult_status}', '${dateTime}', '${labresult_fillerId}')`
-                  logger.log({
-                    level: "info",
-                    message: "Query prepared",
-                    qry
-                  })
                   const data = await req.query(qry, async function(
                     err,
                     result
